@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
   <title>ttestoo&#39;s blog</title>
-  <icon>http://example.com/icon.png</icon>
+  <icon>https://ttestoo.github.io/icon.png</icon>
   <subtitle>领悟。</subtitle>
-  <link href="http://example.com/atom.xml" rel="self"/>
+  <link href="https://ttestoo.github.io/atom.xml" rel="self"/>
   
-  <link href="http://example.com/"/>
+  <link href="https://ttestoo.github.io/"/>
   <updated>2021-09-10T06:50:14.040Z</updated>
-  <id>http://example.com/</id>
+  <id>https://ttestoo.github.io/</id>
   
   <author>
     <name>ttestoo</name>
@@ -18,8 +18,8 @@
   
   <entry>
     <title>Java反序列化-反射</title>
-    <link href="http://example.com/2021/09/10/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96-%E5%8F%8D%E5%B0%84/"/>
-    <id>http://example.com/2021/09/10/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96-%E5%8F%8D%E5%B0%84/</id>
+    <link href="https://ttestoo.github.io/2021/09/10/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96-%E5%8F%8D%E5%B0%84/"/>
+    <id>https://ttestoo.github.io/2021/09/10/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96-%E5%8F%8D%E5%B0%84/</id>
     <published>2021-09-09T17:34:36.000Z</published>
     <updated>2021-09-10T06:50:14.040Z</updated>
     
@@ -34,21 +34,21 @@
     
     
     
-    <category term="反序列化" scheme="http://example.com/categories/%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/"/>
+    <category term="反序列化" scheme="https://ttestoo.github.io/categories/%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/"/>
     
-    <category term="Java Sec" scheme="http://example.com/categories/%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/Java-Sec/"/>
+    <category term="Java Sec" scheme="https://ttestoo.github.io/categories/%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/Java-Sec/"/>
     
     
-    <category term="反射" scheme="http://example.com/tags/%E5%8F%8D%E5%B0%84/"/>
+    <category term="反射" scheme="https://ttestoo.github.io/tags/%E5%8F%8D%E5%B0%84/"/>
     
-    <category term="反序列化" scheme="http://example.com/tags/%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/"/>
+    <category term="反序列化" scheme="https://ttestoo.github.io/tags/%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/"/>
     
   </entry>
   
   <entry>
     <title>SpringBoot Actuator SnakeYAML RCE漏洞分析</title>
-    <link href="http://example.com/2021/08/19/SpringBoot-Actuator-SnakeYAML-RCE%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/"/>
-    <id>http://example.com/2021/08/19/SpringBoot-Actuator-SnakeYAML-RCE%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/</id>
+    <link href="https://ttestoo.github.io/2021/08/19/SpringBoot-Actuator-SnakeYAML-RCE%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/"/>
+    <id>https://ttestoo.github.io/2021/08/19/SpringBoot-Actuator-SnakeYAML-RCE%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/</id>
     <published>2021-08-19T12:02:37.000Z</published>
     <updated>2021-08-20T10:04:01.981Z</updated>
     
@@ -63,16 +63,16 @@
     
     
     
-    <category term="漏洞分析" scheme="http://example.com/categories/%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/"/>
+    <category term="漏洞分析" scheme="https://ttestoo.github.io/categories/%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/"/>
     
-    <category term="Java Sec" scheme="http://example.com/categories/%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/Java-Sec/"/>
+    <category term="Java Sec" scheme="https://ttestoo.github.io/categories/%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/Java-Sec/"/>
     
     
-    <category term="springboot" scheme="http://example.com/tags/springboot/"/>
+    <category term="springboot" scheme="https://ttestoo.github.io/tags/springboot/"/>
     
-    <category term="actuator" scheme="http://example.com/tags/actuator/"/>
+    <category term="actuator" scheme="https://ttestoo.github.io/tags/actuator/"/>
     
-    <category term="漏洞分析" scheme="http://example.com/tags/%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/"/>
+    <category term="漏洞分析" scheme="https://ttestoo.github.io/tags/%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/"/>
     
   </entry>
   
