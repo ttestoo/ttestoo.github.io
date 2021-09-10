@@ -20,12 +20,12 @@
     var CONFIG = {"hostname":"example.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":"mac"},"back2top":{"enable":true,"sidebar":true,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
   </script>
 
-  <meta name="description" content="前言准备花段时间复习、学习下Java反序列化相关内容，为尽量防止学习知识再次一知半解，尽可能记录下；此为第一篇：Java反射相关知识。 很多知识一知半解导致需要花费更多的时间去弥补。。。 问题引出如何根据配置的类名称和方法名称实现对象的创建及方法调用呢？ 例如，在配置文件config.properties中配置了类名称和方法名称： 12classPath&#x3D;com.ttestoo.model.Per">
+  <meta name="description" content="前言准备花段时间复习、学习下Java反序列化相关内容，为尽量防止学习知识再次一知半解，尽可能记录下；此为第一篇：Java反射相关知识。   很多知识一知半解导致需要花费更多的时间去弥补。。。  问题引出如何根据配置的类名称和方法名称实现对象的创建及方法调用呢？ 例如，在配置文件config.properties中配置了类名称和方法名称： 12classPath&#x3D;com.ttestoo.model.">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Java反序列化-反射">
 <meta property="og:url" content="http://example.com/2021/09/10/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96-%E5%8F%8D%E5%B0%84/index.html">
 <meta property="og:site_name" content="ttestoo&#39;s blog">
-<meta property="og:description" content="前言准备花段时间复习、学习下Java反序列化相关内容，为尽量防止学习知识再次一知半解，尽可能记录下；此为第一篇：Java反射相关知识。 很多知识一知半解导致需要花费更多的时间去弥补。。。 问题引出如何根据配置的类名称和方法名称实现对象的创建及方法调用呢？ 例如，在配置文件config.properties中配置了类名称和方法名称： 12classPath&#x3D;com.ttestoo.model.Per">
+<meta property="og:description" content="前言准备花段时间复习、学习下Java反序列化相关内容，为尽量防止学习知识再次一知半解，尽可能记录下；此为第一篇：Java反射相关知识。   很多知识一知半解导致需要花费更多的时间去弥补。。。  问题引出如何根据配置的类名称和方法名称实现对象的创建及方法调用呢？ 例如，在配置文件config.properties中配置了类名称和方法名称： 12classPath&#x3D;com.ttestoo.model.">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="http://example.com/2021/09/10/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96-%E5%8F%8D%E5%B0%84/1631114870125-46100f67-29b4-40b9-924b-8e58fc531f7b-20210910144849854.png">
 <meta property="og:image" content="http://example.com/2021/09/10/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96-%E5%8F%8D%E5%B0%84/1631187738500-af9f100b-f9bd-495b-9ea8-ad1d8bd43ae6-20210910144849852.png">
@@ -33,7 +33,7 @@
 <meta property="og:image" content="http://example.com/2021/09/10/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96-%E5%8F%8D%E5%B0%84/1631201773693-988ebcee-3c9f-4865-97b0-15c6ecf65243-20210910144849905.png">
 <meta property="og:image" content="http://example.com/2021/09/10/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96-%E5%8F%8D%E5%B0%84/1631202533908-bd4a8ec0-e163-46ed-abe4-eb327f452cfc-20210910144849945.png">
 <meta property="article:published_time" content="2021-09-09T17:34:36.000Z">
-<meta property="article:modified_time" content="2021-09-10T06:48:55.040Z">
+<meta property="article:modified_time" content="2021-09-10T06:50:14.040Z">
 <meta property="article:author" content="ttestoo">
 <meta property="article:tag" content="反射">
 <meta property="article:tag" content="反序列化">
@@ -235,7 +235,7 @@
               <span class="post-meta-item-text">发表于</span>
               
 
-              <time title="创建时间：2021-09-10 01:34:36 / 修改时间：14:48:55" itemprop="dateCreated datePublished" datetime="2021-09-10T01:34:36+08:00">2021-09-10</time>
+              <time title="创建时间：2021-09-10 01:34:36 / 修改时间：14:50:14" itemprop="dateCreated datePublished" datetime="2021-09-10T01:34:36+08:00">2021-09-10</time>
             </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -284,7 +284,9 @@
 
       
         <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>准备花段时间复习、学习下Java反序列化相关内容，为尽量防止学习知识再次一知半解，尽可能记录下；此为第一篇：Java反射相关知识。</p>
-<p>很多知识一知半解导致需要花费更多的时间去弥补。。。</p>
+<blockquote>
+<p> 很多知识一知半解导致需要花费更多的时间去弥补。。。</p>
+</blockquote>
 <h1 id="问题引出"><a href="#问题引出" class="headerlink" title="问题引出"></a>问题引出</h1><p>如何根据配置的类名称和方法名称实现对象的创建及方法调用呢？</p>
 <p>例如，在配置文件config.properties中配置了类名称和方法名称：</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">classPath=com.ttestoo.model.Person</span><br><span class="line">methodName=getName</span><br></pre></td></tr></table></figure>

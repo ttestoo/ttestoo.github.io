@@ -4,7 +4,9 @@
     <title>Java反序列化-反射</title>
     <url>/2021/09/10/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96-%E5%8F%8D%E5%B0%84/</url>
     <content><![CDATA[<h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>准备花段时间复习、学习下Java反序列化相关内容，为尽量防止学习知识再次一知半解，尽可能记录下；此为第一篇：Java反射相关知识。</p>
-<p>很多知识一知半解导致需要花费更多的时间去弥补。。。</p>
+<blockquote>
+<p> 很多知识一知半解导致需要花费更多的时间去弥补。。。</p>
+</blockquote>
 <h1 id="问题引出"><a href="#问题引出" class="headerlink" title="问题引出"></a>问题引出</h1><p>如何根据配置的类名称和方法名称实现对象的创建及方法调用呢？</p>
 <p>例如，在配置文件config.properties中配置了类名称和方法名称：</p>
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">classPath=com.ttestoo.model.Person</span><br><span class="line">methodName=getName</span><br></pre></td></tr></table></figure>
