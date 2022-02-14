@@ -6,7 +6,7 @@
   <link href="https://ttestoo.github.io/atom.xml" rel="self"/>
   
   <link href="https://ttestoo.github.io/"/>
-  <updated>2022-01-22T08:15:22.308Z</updated>
+  <updated>2022-02-14T02:21:02.539Z</updated>
   <id>https://ttestoo.github.io/</id>
   
   <author>
@@ -15,6 +15,34 @@
   </author>
   
   <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>Java中XXE利用-通过URL报错读文件</title>
+    <link href="https://ttestoo.github.io/2022/01/16/Java%E4%B8%ADXXE%E5%88%A9%E7%94%A8-%E9%80%9A%E8%BF%87URL%E6%8A%A5%E9%94%99%E8%AF%BB%E6%96%87%E4%BB%B6/"/>
+    <id>https://ttestoo.github.io/2022/01/16/Java%E4%B8%ADXXE%E5%88%A9%E7%94%A8-%E9%80%9A%E8%BF%87URL%E6%8A%A5%E9%94%99%E8%AF%BB%E6%96%87%E4%BB%B6/</id>
+    <published>2022-01-16T15:11:24.000Z</published>
+    <updated>2022-02-14T02:21:02.539Z</updated>
+    
+    
+      
+      
+        
+        
+    <summary type="html">&lt;h1 id=&quot;前言&quot;&gt;&lt;a href=&quot;#前言&quot; class=&quot;headerlink&quot; title=&quot;前言&quot;&gt;&lt;/a&gt;前言&lt;/h1&gt;&lt;p&gt;在记录了部分XXE利用之后，又看到了java环境下的另外一种利用方式：通过URL类未知协议的报错来将读取的文件进行回显；&lt;/p&gt;
+&lt;h1</summary>
+        
+      
+    
+    
+    
+    <category term="XXE" scheme="https://ttestoo.github.io/categories/XXE/"/>
+    
+    <category term="Java Sec" scheme="https://ttestoo.github.io/categories/XXE/Java-Sec/"/>
+    
+    
+    <category term="XXE" scheme="https://ttestoo.github.io/tags/XXE/"/>
+    
+  </entry>
   
   <entry>
     <title>Log4j2 rce漏洞记录</title>

