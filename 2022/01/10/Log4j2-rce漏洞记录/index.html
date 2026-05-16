@@ -331,6 +331,8 @@
 
 
 <p>接着正向分析，首先在LoggerConfig#processLogEvent中通过调用Appender对日志事件进行处理：</p>
+<span id="more"></span>
+
 <p><img src="1642599291409-9224c309-6f4e-489b-83e0-cce25cdf9384.png" alt="img"></p>
 <p>来到LoggerConfig#callAppenders，看到循环调用所有的Appender（可理解为日志输出的方式，可通过配置文件配置多个，例如：ConsoleAppender、FileAppender等）处理日志事件，这里仅配置了一个ConsoleAppender：</p>
 <p><img src="1642599814563-ddb753bd-89a0-43d2-b5d2-ca0c490275b4.png" alt="img"></p>

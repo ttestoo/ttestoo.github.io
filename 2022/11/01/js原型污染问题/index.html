@@ -362,6 +362,8 @@
 <li>模板/框架配置：污染本身通常只是写入属性，真正造成 XSS、鉴权绕过、RCE 还需要后续代码读取这些被污染属性，也就是需要可利用的 gadget。</li>
 </ul>
 <p>注意，<code>&#123;&quot;__proto__&quot;: &#123;...&#125;&#125;</code> 写在 JavaScript 对象字面量里时通常会触发 <code>__proto__</code> 的特殊语义；而通过 <code>JSON.parse</code> 解析时会得到一个普通自有属性名为 <code>__proto__</code> 的对象。这个对象本身还不一定污染原型，真正危险的是后续不安全的递归合并/赋值逻辑：</p>
+<span id="more"></span>
+
 <p><img src="fig-01.png"></p>
 <p><img src="fig-02.png"></p>
 <p>原型污染利用链通常可以拆成两步：</p>

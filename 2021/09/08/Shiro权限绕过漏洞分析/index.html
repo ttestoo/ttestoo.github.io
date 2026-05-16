@@ -376,6 +376,7 @@
 <p>一个http请求过来，首先经过web容器的处理（这里默认为tomcat）被投放到相应的web应用，web应用会通过过滤器Filter链式的对http请求进行预处理，这里将会经过shiro的Filter（SpringShiroFilter）处理：</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">org.apache.catalina.core.ApplicationFilterChain#internalDoFilter --&gt; org.apache.shiro.web.servlet.OncePerRequestFilter#doFilter		--&gt;    </span><br><span class="line">org.apache.shiro.web.servlet.AbstractShiroFilter#doFilterInternal  --&gt;</span><br><span class="line">org.apache.shiro.web.servlet.AbstractShiroFilter#executeChain</span><br></pre></td></tr></table></figure>
 
+<span id="more"></span>
 
 <p><img src="1630601325451-04629821-65ed-471b-947b-4c81084e2f7d.png" alt="img"></p>
 <p><img src="1630601529024-db7cbbd3-82f0-4a60-bbcc-02d89b72c644.png" alt="img"></p>
