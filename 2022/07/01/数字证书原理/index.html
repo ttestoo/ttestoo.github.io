@@ -1,0 +1,915 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+  <meta name="baidu-site-verification" content="code-IgVCkP0vYS">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"ttestoo.github.io","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":"mac"},"back2top":{"enable":true,"sidebar":true,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="本文档记录了数字签名原理、数字证书的创建过程及示例、数字证书使用相关的各类原理等，可用来复习签名&amp;数字证书相关知识。  对称加密加密密钥&#x3D;解密密钥。通信双方必须提前共享同一把密钥，典型算法有 AES、ChaCha20 等。它的优点是速度快，适合加密大量数据；缺点是密钥分发困难，一旦共享密钥泄漏，双方通信内容都不再安全。  非对称加密公钥和私钥成对使用，并且在数学上相关：  公钥可以公开，">
+<meta property="og:type" content="article">
+<meta property="og:title" content="数字证书原理">
+<meta property="og:url" content="https://ttestoo.github.io/2022/07/01/%E6%95%B0%E5%AD%97%E8%AF%81%E4%B9%A6%E5%8E%9F%E7%90%86/index.html">
+<meta property="og:site_name" content="ttestoo&#39;s blog">
+<meta property="og:description" content="本文档记录了数字签名原理、数字证书的创建过程及示例、数字证书使用相关的各类原理等，可用来复习签名&amp;数字证书相关知识。  对称加密加密密钥&#x3D;解密密钥。通信双方必须提前共享同一把密钥，典型算法有 AES、ChaCha20 等。它的优点是速度快，适合加密大量数据；缺点是密钥分发困难，一旦共享密钥泄漏，双方通信内容都不再安全。  非对称加密公钥和私钥成对使用，并且在数学上相关：  公钥可以公开，">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://ttestoo.github.io/2022/07/01/%E6%95%B0%E5%AD%97%E8%AF%81%E4%B9%A6%E5%8E%9F%E7%90%86/fig-1.png">
+<meta property="og:image" content="https://ttestoo.github.io/2022/07/01/%E6%95%B0%E5%AD%97%E8%AF%81%E4%B9%A6%E5%8E%9F%E7%90%86/fig-2.png">
+<meta property="og:image" content="https://ttestoo.github.io/2022/07/01/%E6%95%B0%E5%AD%97%E8%AF%81%E4%B9%A6%E5%8E%9F%E7%90%86/fig-3.png">
+<meta property="og:image" content="https://ttestoo.github.io/2022/07/01/%E6%95%B0%E5%AD%97%E8%AF%81%E4%B9%A6%E5%8E%9F%E7%90%86/fig-4.png">
+<meta property="og:image" content="https://ttestoo.github.io/2022/07/01/%E6%95%B0%E5%AD%97%E8%AF%81%E4%B9%A6%E5%8E%9F%E7%90%86/fig-5.png">
+<meta property="og:image" content="https://ttestoo.github.io/2022/07/01/%E6%95%B0%E5%AD%97%E8%AF%81%E4%B9%A6%E5%8E%9F%E7%90%86/fig-6.png">
+<meta property="og:image" content="https://ttestoo.github.io/2022/07/01/%E6%95%B0%E5%AD%97%E8%AF%81%E4%B9%A6%E5%8E%9F%E7%90%86/fig-7.png">
+<meta property="og:image" content="https://ttestoo.github.io/2022/07/01/%E6%95%B0%E5%AD%97%E8%AF%81%E4%B9%A6%E5%8E%9F%E7%90%86/fig-8.png">
+<meta property="og:image" content="https://ttestoo.github.io/2022/07/01/%E6%95%B0%E5%AD%97%E8%AF%81%E4%B9%A6%E5%8E%9F%E7%90%86/fig-9.png">
+<meta property="og:image" content="https://ttestoo.github.io/2022/07/01/%E6%95%B0%E5%AD%97%E8%AF%81%E4%B9%A6%E5%8E%9F%E7%90%86/fig-10.png">
+<meta property="og:image" content="https://ttestoo.github.io/2022/07/01/%E6%95%B0%E5%AD%97%E8%AF%81%E4%B9%A6%E5%8E%9F%E7%90%86/fig-11.png">
+<meta property="og:image" content="https://ttestoo.github.io/2022/07/01/%E6%95%B0%E5%AD%97%E8%AF%81%E4%B9%A6%E5%8E%9F%E7%90%86/fig-12.png">
+<meta property="og:image" content="https://ttestoo.github.io/2022/07/01/%E6%95%B0%E5%AD%97%E8%AF%81%E4%B9%A6%E5%8E%9F%E7%90%86/fig-13.png">
+<meta property="og:image" content="https://ttestoo.github.io/2022/07/01/%E6%95%B0%E5%AD%97%E8%AF%81%E4%B9%A6%E5%8E%9F%E7%90%86/fig-14.png">
+<meta property="og:image" content="https://ttestoo.github.io/2022/07/01/%E6%95%B0%E5%AD%97%E8%AF%81%E4%B9%A6%E5%8E%9F%E7%90%86/fig-15.png">
+<meta property="og:image" content="https://ttestoo.github.io/2022/07/01/%E6%95%B0%E5%AD%97%E8%AF%81%E4%B9%A6%E5%8E%9F%E7%90%86/fig-16.png">
+<meta property="og:image" content="https://ttestoo.github.io/2022/07/01/%E6%95%B0%E5%AD%97%E8%AF%81%E4%B9%A6%E5%8E%9F%E7%90%86/fig-17.png">
+<meta property="og:image" content="https://ttestoo.github.io/2022/07/01/%E6%95%B0%E5%AD%97%E8%AF%81%E4%B9%A6%E5%8E%9F%E7%90%86/fig-18.png">
+<meta property="og:image" content="https://ttestoo.github.io/2022/07/01/%E6%95%B0%E5%AD%97%E8%AF%81%E4%B9%A6%E5%8E%9F%E7%90%86/fig-19.png">
+<meta property="og:image" content="https://ttestoo.github.io/2022/07/01/%E6%95%B0%E5%AD%97%E8%AF%81%E4%B9%A6%E5%8E%9F%E7%90%86/fig-20.png">
+<meta property="og:image" content="https://ttestoo.github.io/2022/07/01/%E6%95%B0%E5%AD%97%E8%AF%81%E4%B9%A6%E5%8E%9F%E7%90%86/fig-21.png">
+<meta property="og:image" content="https://ttestoo.github.io/2022/07/01/%E6%95%B0%E5%AD%97%E8%AF%81%E4%B9%A6%E5%8E%9F%E7%90%86/fig-22.png">
+<meta property="og:image" content="https://ttestoo.github.io/2022/07/01/%E6%95%B0%E5%AD%97%E8%AF%81%E4%B9%A6%E5%8E%9F%E7%90%86/fig-23.png">
+<meta property="og:image" content="https://ttestoo.github.io/2022/07/01/%E6%95%B0%E5%AD%97%E8%AF%81%E4%B9%A6%E5%8E%9F%E7%90%86/fig-24.png">
+<meta property="article:published_time" content="2022-06-30T16:00:00.000Z">
+<meta property="article:modified_time" content="2026-05-15T16:00:00.000Z">
+<meta property="article:author" content="ttestoo">
+<meta property="article:tag" content="数字证书">
+<meta property="article:tag" content="PKI">
+<meta property="article:tag" content="数字签名">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://ttestoo.github.io/2022/07/01/%E6%95%B0%E5%AD%97%E8%AF%81%E4%B9%A6%E5%8E%9F%E7%90%86/fig-1.png">
+
+<link rel="canonical" href="https://ttestoo.github.io/2022/07/01/%E6%95%B0%E5%AD%97%E8%AF%81%E4%B9%A6%E5%8E%9F%E7%90%86/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>数字证书原理 | ttestoo's blog</title>
+  
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?2509b78f4891a940e38e443a10f826fa";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="ttestoo's blog" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">ttestoo's blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">领悟。</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档<span class="badge">7</span></a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签<span class="badge">12</span></a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类<span class="badge">14</span></a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://ttestoo.github.io/2022/07/01/%E6%95%B0%E5%AD%97%E8%AF%81%E4%B9%A6%E5%8E%9F%E7%90%86/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avator.jpg">
+      <meta itemprop="name" content="ttestoo">
+      <meta itemprop="description" content="不争">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ttestoo's blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          数字证书原理
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2022-07-01 00:00:00" itemprop="dateCreated datePublished" datetime="2022-07-01T00:00:00+08:00">2022-07-01</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2026-05-16 00:00:00" itemprop="dateModified" datetime="2026-05-16T00:00:00+08:00">2026-05-16</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%AE%89%E5%85%A8%E5%9F%BA%E7%A1%80/" itemprop="url" rel="index"><span itemprop="name">安全基础</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%AE%89%E5%85%A8%E5%9F%BA%E7%A1%80/PKI/" itemprop="url" rel="index"><span itemprop="name">PKI</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>13k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>12 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <blockquote>
+<p>本文档记录了数字签名原理、数字证书的创建过程及示例、数字证书使用相关的各类原理等，可用来复习签名&amp;数字证书相关知识。</p>
+</blockquote>
+<h1 id="对称加密"><a href="#对称加密" class="headerlink" title="对称加密"></a>对称加密</h1><p>加密密钥=解密密钥。通信双方必须提前共享同一把密钥，典型算法有 AES、ChaCha20 等。它的优点是速度快，适合加密大量数据；缺点是密钥分发困难，一旦共享密钥泄漏，双方通信内容都不再安全。</p>
+<p><img src="fig-1.png"></p>
+<h1 id="非对称加密"><a href="#非对称加密" class="headerlink" title="非对称加密"></a>非对称加密</h1><p>公钥和私钥成对使用，并且在数学上相关：</p>
+<ul>
+<li>公钥可以公开，私钥必须由拥有者自己保管；</li>
+<li>用于加密时，通常是公钥加密、私钥解密；</li>
+<li>用于签名时，通常是私钥签名、公钥验签。</li>
+</ul>
+<p><img src="fig-2.png"></p>
+<h2 id="加解密示例"><a href="#加解密示例" class="headerlink" title="加解密示例"></a>加解密示例</h2><p>1、使用openssl创建一个私钥：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">openssl genpkey -algorithm RSA -outform PEM -out private_key.pem</span><br></pre></td></tr></table></figure>
+
+<p>2、创建对应的公钥：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">openssl rsa -in private_key.pem -outform PEM -pubout -out public_key.pem</span><br></pre></td></tr></table></figure>
+
+<p>3、使用公钥对文件进行加密：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">openssl rsautl -encrypt -inkey public_key.pem -pubin -in plain_text -out encrypted_text</span><br></pre></td></tr></table></figure>
+
+<p>4、使用私钥对密文进行解密：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">openssl rsautl -decrypt -inkey private_key.pem -in encrypted_text -out decrypt_text</span><br></pre></td></tr></table></figure>
+
+<p><code>rsautl</code>在 OpenSSL 3.x 中已废弃，实际使用时更建议通过<code>pkeyutl</code>并显式指定安全填充方式，例如 OAEP：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">openssl pkeyutl -encrypt -pubin -inkey public_key.pem -in plain_text -out encrypted_text \</span><br><span class="line">  -pkeyopt rsa_padding_mode:oaep -pkeyopt rsa_oaep_md:sha256 -pkeyopt rsa_mgf1_md:sha256</span><br><span class="line">openssl pkeyutl -decrypt -inkey private_key.pem -in encrypted_text -out decrypt_text \</span><br><span class="line">  -pkeyopt rsa_padding_mode:oaep -pkeyopt rsa_oaep_md:sha256 -pkeyopt rsa_mgf1_md:sha256</span><br></pre></td></tr></table></figure>
+
+<p>另外，非对称加密一般不直接加密大文件。真实协议通常使用混合加密：先用非对称算法协商或加密一个对称密钥，再用对称加密算法加密业务数据。</p>
+<p><img src="fig-3.png"></p>
+<h1 id="哈希函数"><a href="#哈希函数" class="headerlink" title="哈希函数"></a>哈希函数</h1><p>哈希函数是一个具有以下输入和输出的数学函数 H(X)=Y：</p>
+<ul>
+<li>H: 哈希函数，其输入参数为X，输出为Y</li>
+<li>X: 哈希方法的输入，可以是任意长度的任意数据</li>
+<li>Y：哈希方法的输出，是一段固定长度的二进制数据，常见长度有 256、384、512 bit 等</li>
+</ul>
+<p>哈希函数不是加密算法，因为它没有“解密”过程。密码学哈希函数通常关注以下特征：</p>
+<ul>
+<li>确定性：相同输入永远得到相同输出</li>
+<li>单向性：给定<code>Y</code>很难反推出任意一个满足<code>H(X)=Y</code>的输入<code>X</code></li>
+<li>抗第二原像：给定一个输入<code>X1</code>，很难找到另一个不同输入<code>X2</code>，使<code>H(X1)=H(X2)</code></li>
+<li>抗碰撞：很难找到任意两个不同输入<code>X1</code>、<code>X2</code>，使它们的哈希值相同</li>
+<li>雪崩效应：输入发生极小变化，输出也会发生明显变化</li>
+</ul>
+<h1 id="数字签名"><a href="#数字签名" class="headerlink" title="数字签名"></a>数字签名</h1><h2 id="非对称算法-gt-数字签名"><a href="#非对称算法-gt-数字签名" class="headerlink" title="非对称算法-&gt;数字签名"></a>非对称算法-&gt;数字签名</h2><p>非对称加密是使用公钥进行加密，对密文进行传输，最后由密钥拥有者使用私钥进行解密得到明文；</p>
+<p>数字签名和“私钥加密、公钥解密”很像，但严格来说不是同一个操作。签名算法会把待签名数据、私钥、哈希算法和填充规则组合起来生成签名；验签算法使用公钥验证签名是否与数据匹配。这样可以证明两件事：</p>
+<ul>
+<li>签名者持有对应私钥；如果公钥已通过证书等方式绑定到身份，就可用于身份确认</li>
+<li>签名覆盖的数据没有被篡改，可用于完整性校验</li>
+</ul>
+<p>非对称算法进行数字签名验证原理如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">消息发送者生成密钥对： </span><br><span class="line">	(sk,pk):= generates(keysize)</span><br><span class="line">消息发送者生成数字签名： </span><br><span class="line">	signature := sign(sk, message)</span><br><span class="line"></span><br><span class="line">消息接收者验证发送者身份： </span><br><span class="line">	isValid := verify(pk, message, signature)</span><br></pre></td></tr></table></figure>
+
+<h2 id="非对称-amp-哈希-gt-数字签名"><a href="#非对称-amp-哈希-gt-数字签名" class="headerlink" title="非对称&amp;哈希-&gt;数字签名"></a>非对称&amp;哈希-&gt;数字签名</h2><p>仅使用非对称加密算法进行数字签名存在一定的缺点：</p>
+<ul>
+<li>原始数据较大时，直接对完整消息做非对称签名和验签效率较低</li>
+<li>部分签名算法本身只处理固定长度或受限长度的数据块</li>
+</ul>
+<p>可通过将非对称和哈希结合使用来进行数字签名：</p>
+<ul>
+<li>先对原始数据计算哈希值，再对哈希值进行签名；消息接收者重新计算原始数据的哈希值，并使用公钥验证签名是否匹配。原理如下：</li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">消息发送者生成密钥对：</span><br><span class="line">	(sk,pk):= generates(keysize)</span><br><span class="line">消息发送者生成数字签名： </span><br><span class="line">	digest := hash(message)</span><br><span class="line">	signature := sign(sk, digest)</span><br><span class="line"></span><br><span class="line">消息接收者验证发送者身份： </span><br><span class="line">	digest := hash(message)</span><br><span class="line">	isValid := verify(pk, digest, signature)</span><br></pre></td></tr></table></figure>
+
+<p>实际算法中，<code>sign</code>和<code>verify</code>还会包含填充和编码步骤，例如 RSA-PSS、ECDSA、Ed25519 等算法的细节并不相同。验证成功只能说明“签名和公钥匹配、数据未被修改”，至于“这个公钥属于谁”，还需要依赖后面的数字证书和信任链来证明。</p>
+<h2 id="数字签名-amp-验证过程"><a href="#数字签名-amp-验证过程" class="headerlink" title="数字签名&amp;验证过程"></a>数字签名&amp;验证过程</h2><p>数字签名、验证的过程如下：</p>
+<p><img src="fig-4.png"></p>
+<h1 id="数字证书"><a href="#数字证书" class="headerlink" title="数字证书"></a>数字证书</h1><h2 id="数字证书标准"><a href="#数字证书标准" class="headerlink" title="数字证书标准"></a>数字证书标准</h2><p>前面讲了：可以通过数字签名来证明一个人或者组织拥有一个公钥对应的私钥，因此我们可以把一个公钥看作一个数字身份标识，如果一个人可以发出使用该标识(公钥)对应的私钥签名的数据,则说明该用户是该数字身份标识的拥有者。</p>
+<p>以上可类比成现实生活中的各类会员卡、比特币交易。需要注意，比特币地址通常不是公钥本身，而是由公钥经过哈希和编码后得到的标识；它仍然体现了“持有私钥才能花费对应地址资产”的思想。</p>
+<p>大部分情况下，还需要证明公钥拥有者的真实身份，例如：姓名、邮箱、域名、组织等，因此会将这些信息随着公钥一起发布，也就形成了数字证书。更准确地说，数字证书是<code>主体身份信息 + 主体公钥 + 颁发者信息 + 有效期 + 用途/约束扩展 + 颁发者签名</code>的一组结构化数据。</p>
+<p>RFC5280标准（<a target="_blank" rel="noopener" href="https://www.ietf.org/rfc/rfc5280.txt">https://www.ietf.org/rfc/rfc5280.txt</a>）定义了X.509证书的标准格式：</p>
+<p><img src="fig-5.png"></p>
+<p>X.509 v3 证书中比较关键的字段和扩展包括：</p>
+<ul>
+<li>Version：证书版本，现代证书通常是 v3，因为 v3 才支持扩展字段</li>
+<li>Serial Number：证书序列号，由颁发者在自身范围内保证唯一，吊销时会用到</li>
+<li>Signature Algorithm：颁发者对证书签名时使用的算法。证书结构里通常会出现内外两处签名算法标识，二者应一致</li>
+<li>Issuer：颁发者名称</li>
+<li>Validity：证书有效期，包括<code>Not Before</code>和<code>Not After</code></li>
+<li>Subject：证书主体名称</li>
+<li>Subject Public Key Info：证书主体的公钥及公钥算法</li>
+<li>Subject Alternative Name（SAN）：主体备用名称，HTTPS 域名校验主要看这里</li>
+<li>Key Usage / Extended Key Usage：限制证书用途，例如签名证书、服务器认证、客户端认证、代码签名等</li>
+<li>Basic Constraints：标记证书是否为 CA 证书，以及证书链深度限制</li>
+<li>Subject Key Identifier（SKI）/ Authority Key Identifier（AKI）：帮助构建证书链，定位上级证书</li>
+<li>Signature Value：颁发者对<code>TBSCertificate</code>部分的数字签名。验签时不是对整个证书文件验签，而是对“待签名证书内容”验签</li>
+</ul>
+<h2 id="证书创建"><a href="#证书创建" class="headerlink" title="证书创建"></a>证书创建</h2><p>向证书机构申请证书，需要生成 CSR（Certificate Signing Request，证书签名请求）文件：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">openssl req -newkey rsa:2048 -new -nodes -keyout my.key -out my.csr</span><br></pre></td></tr></table></figure>
+
+<p>CSR 通常采用 PKCS#10 格式，里面包含主体名称、主体公钥、可选属性/扩展请求，并由申请者使用对应私钥签名。这个签名用于证明申请者确实持有该公钥对应的私钥，但不等于 CA 已经认可其身份；域名、组织、个人身份等仍需要 CA 按证书类型单独验证。</p>
+<p>也可创建自签证书：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">openssl req -newkey rsa:2048 -nodes -keyout key.pem -x509 -days 365 -out cert.pem</span><br><span class="line"></span><br><span class="line">-keyout key.pem：</span><br><span class="line">-out cert.pem: 输出的证书</span><br></pre></td></tr></table></figure>
+
+<p><img src="fig-6.png"></p>
+<p>查看证书内容：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">openssl x509 -in cert.pem -text</span><br></pre></td></tr></table></figure>
+
+<p><img src="fig-7.png"></p>
+<p><code>-----BEGIN CERTIFICATE-----</code>前为解码后的证书内容，后半部分为采用PEM格式进行base64编码的原始证书文件内容，部分字段含义如下：</p>
+<ul>
+<li>Issuer：证书颁发机构</li>
+<li>Subject：证书拥有者</li>
+<li>Validity：证书有效期</li>
+<li>Subject Public Key Info：证书拥有者的公钥</li>
+<li>X509v3 extensions：证书用途、CA 约束、SAN、SKI/AKI 等扩展</li>
+<li>Signature Algorithm / Signature Value：签名算法及颁发者对证书内容生成的数字签名</li>
+</ul>
+<h2 id="自签名证书"><a href="#自签名证书" class="headerlink" title="自签名证书"></a>自签名证书</h2><p>生成数字证书时需要使用证书颁发机构（issuer）的私钥对证书进行数字签名，其中上述生成的证书中 Issuer 和 Subject 的内容相同，并且证书签名可被证书自身公钥验证通过，这种被称为自签名证书（签名者和拥有者为同一人）。严格来说，Issuer 和 Subject 相同只能说明它是 self-issued；只有签名确实由证书自身公钥对应的私钥产生，才是 self-signed；</p>
+<p>可通过<code>openssl verify</code>命令来验证证书：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">openssl verify -CAfile cert.pem cert.pem</span><br><span class="line"></span><br><span class="line">-CAfile：指定验证证书签名使用的公钥，即证书颁发机构的公钥；这里为自签证书，所以为自身证书中的公钥</span><br></pre></td></tr></table></figure>
+
+<p><img src="fig-8.png"></p>
+<p>当证书过期时会验证失败：</p>
+<p><img src="fig-9.png"><br>自签名证书无法解决证书拥有者和证书使用者之间的信任问题，一般只用于组织机构内部系统中；</p>
+<h2 id="证书机构"><a href="#证书机构" class="headerlink" title="证书机构"></a>证书机构</h2><p>为解决证书拥有者和证书使用者之间的信任问题，在数字证书体系中引入了证书颁发机构，可类比为现实生活中的政府部门（由于政府部门的担保，身份证可信）；</p>
+<p>被验证方信任的证书机构才是可信的。通过证书机构的私钥对证书进行签名，相当于证书机构用自己的信誉来保证证书中用户身份信息和公钥的真实性；用户使用证书机构的公钥验证证书签名后，可以确认“该证书确实由这个 CA 签发，且证书内容未被篡改”。</p>
+<p>不过，证书验签成功不等于证书一定可用。完整的证书校验通常还要检查：</p>
+<ul>
+<li>证书链是否能构建到本地信任的根证书</li>
+<li>每一级证书的签名、有效期、Basic Constraints、Key Usage 是否满足用途要求</li>
+<li>叶子证书的 SAN 是否匹配访问目标，例如 HTTPS 场景下域名必须匹配</li>
+<li>证书是否已被吊销，可通过 CRL 或 OCSP 查询</li>
+<li>证书使用的算法、密钥长度、签名算法是否仍被认为安全</li>
+</ul>
+<p><img src="fig-10.png"></p>
+<p>在证书验证时如何获取到证书机构的公钥？</p>
+<p>证书机构会为自己颁发一个自签名证书，称为证书机构的根证书。操作系统、浏览器会把受信任的根证书内置到信任库中；手工导入 Burp 证书，本质上就是把 Burp 作为本机信任的 CA，因此它才能为拦截到的 HTTPS 站点动态签发本机认可的证书。</p>
+<p>CRL 和 OCSP 都用于查询证书是否被吊销。CRL 是 CA 定期发布的吊销列表，OCSP 是验证方按证书序列号向 OCSP 服务查询状态。真实客户端还会受缓存、软失败策略、OCSP Stapling 等因素影响，所以“没有查到吊销”不总是等价于“证书一定有效”，它只是证书路径验证中的一个条件。</p>
+<h2 id="数字证书签发验证过程"><a href="#数字证书签发验证过程" class="headerlink" title="数字证书签发验证过程"></a>数字证书签发验证过程</h2><p>Alice想发送一个合同文件给Bob，为了向Bob表明该合同文件是Alice发出的，Alice需要向证书机构申请签发一个合法证书。Alice使用自己的私钥对合同文件进行数字签名，并把证书机构签发的证书一起发送给Bob，过程如下：</p>
+<p><img src="fig-11.png"></p>
+<blockquote>
+<ol>
+<li>Alice在本地生成Private Key和CSR（Certificate Signing Request）。CSR中包含了Alice的公钥和姓名，机构、地址等身份信息，并使用Alice的私钥对 CSR 内容签名。</li>
+<li>Alice使用该CSR向证书机构发起数字证书申请。</li>
+<li>证书机构验证Alice的身份和 CSR 签名后，使用CSR中的信息生成数字证书，并使用 CA 证书对应的私钥对该证书签名。真实公网 PKI 中通常由中间 CA 签发用户证书，而不是根 CA 直接签发。</li>
+<li>Alice使用自己的Private Key对合同进行签名，然后将签名后的合同和自己的证书一起并发送给Bob。</li>
+<li>Bob使用操作系统中自带的证书机构根证书中的公钥来验证Alice证书中的签名，并检查证书链、有效期、用途、吊销状态等条件。</li>
+<li>Alice的证书验证成功后，Bob使用Alice证书中的公钥来验证合同中数字签名。</li>
+<li>合同数字签名通过验证，可以证明该合同为Alice本人发送，并且中间未被第三方篡改过。</li>
+</ol>
+</blockquote>
+<p>通过openssl进行试验上述流程：</p>
+<ul>
+<li>模拟一个证书机构，创建证书机构的私钥和自签名根证书</li>
+</ul>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">openssl req -newkey rsa:2048 -nodes -keyout rootCA.key -x509 -days 365 -out rootCA.crt</span><br></pre></td></tr></table></figure>
+
+<p>这个命令适合演示流程。真实 CA 根证书应生成 v3 CA 证书，并包含<code>basicConstraints = critical,CA:true</code>、<code>keyUsage = critical,keyCertSign,cRLSign</code>、SKI 等扩展。</p>
+<p><img src="fig-12.png"></p>
+<ul>
+<li>创建Alice的私钥和CSR（证书签名请求），其中CSR中包含了Alice的公钥、姓名、机构等信息</li>
+</ul>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">openssl req -new -nodes -keyout Alice.key -out Alice.csr</span><br></pre></td></tr></table></figure>
+
+<p><img src="fig-13.png"></p>
+<ul>
+<li>使用证书机构的私钥、根证书和Alice的CSR为Alice创建数字证书</li>
+</ul>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">openssl x509 -req -in Alice.csr -CA rootCA.crt -CAkey rootCA.key -CAcreateserial -out Alice.crt</span><br></pre></td></tr></table></figure>
+
+<p>该命令未给 Alice 证书添加 Key Usage、Extended Key Usage、SAN 等扩展，只适合演示签发关系。若用于 HTTPS、客户端认证或代码签名，应通过扩展配置明确证书用途和主体名称。</p>
+<p><img src="fig-14.png"></p>
+<ul>
+<li>Alice使用私钥对合同文件进行签名，然后把签名后的合同和Alice的数字证书一起发给Bob</li>
+</ul>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">echo &#x27;test from alice&#x27; &gt; alice_text</span><br><span class="line">openssl dgst -sha256 -sign Alice.key -out alice_text_sign.sha256 alice_text</span><br></pre></td></tr></table></figure>
+
+<p><img src="fig-15.png"></p>
+<ul>
+<li>Bob收到合同后，验证Alice的数字证书是否合法</li>
+</ul>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">openssl verify Alice.crt</span><br></pre></td></tr></table></figure>
+
+<p>注意，由于证书机构的根证书是自己生成的自签名证书，并未内置到操作系统中，所以直接<code>openssl verify</code>会验证失败：</p>
+<p><img src="fig-16.png"></p>
+<p>可通过-CAfile指定验证时使用的证书机构的根证书或者将此根证书内置到操作系统中：</p>
+<p><code>openssl verify -CAfile rootCA.crt  Alice.crt</code></p>
+<p><img src="fig-17.png"></p>
+<p>这里<code>openssl verify</code>主要验证证书链和证书有效期等通用条件。真实应用中还需要根据业务场景继续验证身份，例如 HTTPS 客户端必须确认访问域名匹配证书 SAN；如果是文档签名，也要确认 Subject、证书用途和签名者身份符合业务预期。</p>
+<ul>
+<li>Bob验证了Alice的证书后，使用Alice证书中的公钥对合同的数字签名进行验证，从而证明该合同确实为Alice发过来的</li>
+</ul>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">从Alice的证书中导出Alice的公钥</span></span><br><span class="line">openssl x509 -pubkey -noout -in Alice.crt  &gt; Alice-pub.key</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">使用公钥对合同签名进行验证</span></span><br><span class="line">openssl dgst -sha256 -verify Alice-pub.key -signature alice_text_sign.sha256 alice_text</span><br></pre></td></tr></table></figure>
+
+<p><img src="fig-18.png"></p>
+<h2 id="证书链"><a href="#证书链" class="headerlink" title="证书链"></a>证书链</h2><p>中间证书：</p>
+<ul>
+<li>由于根证书非常重要，如果根证书密钥泄漏则会影响签发的所有用户证书；</li>
+<li>通常情况下证书机构不会直接使用根证书签发用户证书，而是会使用根证书签发多个中间证书，然后使用中间证书签发用户证书，这样如果某个中间证书泄漏则可以废弃掉该中间证书，仅影响该中间证书签发的用户证书，影响范围大幅缩小；</li>
+</ul>
+<p>证书链：</p>
+<ul>
+<li>根证书、中间证书（可有多个层级）、用户证书共同组成证书链；</li>
+<li>其中证书的生成验证过程类似，以三层证书举例：<ul>
+<li>证书生成过程<ol>
+<li>证书机构生成自签名根证书</li>
+<li>证书机构采用根证书对应的私钥签名中间证书</li>
+<li>证书机构采用中间证书对应的私钥签名用户证书</li>
+<li>用户采用用户证书对应的私钥签名用户数据</li>
+</ol>
+</li>
+<li>证书验证过程<ol>
+<li>采用中间证书中的公钥验证用户证书的签名</li>
+<li>采用根证书中的公钥验证中间证书的签名</li>
+<li>采用用户证书中的公钥来验证数据中的签名</li>
+</ol>
+</li>
+</ul>
+</li>
+<li>每一个下级证书都有其上级证书的<code>Issuer DN（Distinguished Name）</code>，在证书验证时会结合 Issuer DN、AKI/SKI 等信息查找上级证书。DN 只是路径构建线索之一，不能单独作为信任依据：</li>
+</ul>
+<p>证书链验证和业务数据签名验证是两个步骤。证书链验证用于确认“这个用户证书里的公钥可信”；业务数据签名验证才使用该用户公钥去确认“这份数据确实由对应私钥签名且未被篡改”。根证书是否可信来自本地信任库，而不是因为它在链中自签名。</p>
+<p><img src="fig-19.png"></p>
+<p>openssl试验三层证书链：</p>
+<ul>
+<li>生成根证书和对应的私钥</li>
+</ul>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">openssl req -newkey rsa:2048 -nodes -keyout rootCA.key -x509 -days 365 -out rootCA.crt</span><br></pre></td></tr></table></figure>
+
+<p>同样，这里是简化实验命令。更严谨的根证书应通过 OpenSSL 配置显式加入 v3 CA 扩展，避免后续签发中间证书时缺少 SKI、Basic Constraints、Key Usage 等信息。</p>
+<ul>
+<li>生成中间证书私钥和CSR</li>
+</ul>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">openssl req -new -nodes -keyout intermediate.key -out intermediate.csr</span><br></pre></td></tr></table></figure>
+
+<p><img src="fig-20.png"></p>
+<ul>
+<li>使用根证书签发中间证书</li>
+</ul>
+<p>中间证书需在证书的<code>basicConstraints</code>中设置<code>CA:true</code>标签，来标明该证书属于证书机构的证书，可用来签发和验证用户证书；同时还应在<code>keyUsage</code>中包含<code>keyCertSign</code>，否则即使签名数学上能验证通过，也不应被当作 CA 证书使用。这里采用<code>openssl ca</code>命令配置；</p>
+<p>首先创建<code>openssl ca</code>命令使用的配置文件<code>intermediateCA.conf</code>：</p>
+<p>(<a target="_blank" rel="noopener" href="https://pki-tutorial.readthedocs.io/en/latest/expert/component-ca.conf.html">https://pki-tutorial.readthedocs.io/en/latest/expert/component-ca.conf.html</a>)</p>
+<figure class="highlight nginx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">[ <span class="attribute">ca</span> ]</span><br><span class="line">default_ca = intermediate_ca</span><br><span class="line">[ intermediate_ca ]</span><br><span class="line">dir = .</span><br><span class="line">private_key = <span class="variable">$dir</span>/rootCA.key</span><br><span class="line">certificate = <span class="variable">$dir</span>/rootCA.crt</span><br><span class="line">new_certs_dir = <span class="variable">$dir</span>/</span><br><span class="line">serial = <span class="variable">$dir</span>/crt.srl</span><br><span class="line">database = <span class="variable">$dir</span>/db/index</span><br><span class="line">default_md = sha256</span><br><span class="line">policy = policy_any</span><br><span class="line">email_in_dn = <span class="literal">no</span></span><br><span class="line">[ policy_any ]</span><br><span class="line">domainComponent = </span><br><span class="line">countryName = CN</span><br><span class="line">stateOrProvinceName = GuangDong</span><br><span class="line">localityName = ShenZhen</span><br><span class="line">organizationName = IntermediateCert</span><br><span class="line">organizationalUnitName = </span><br><span class="line">commonName = inter</span><br><span class="line">emailAddress = inter<span class="variable">@gmail</span>.com</span><br><span class="line">[ ca_ext ]</span><br><span class="line">keyUsage                = critical,keyCertSign,cRLSign</span><br><span class="line"><span class="comment"># 注意这里设置了CA:true，表明使用该配置生成的证书是CA证书，可以用于签发用户证书</span></span><br><span class="line">basicConstraints        = critical,CA:<span class="literal">true</span></span><br><span class="line">subjectKeyIdentifier    = hash</span><br><span class="line">authorityKeyIdentifier  = keyid,issuer</span><br></pre></td></tr></table></figure>
+
+<p>如果写成<code>authorityKeyIdentifier = keyid:always</code>，但上级证书没有 Subject Key Identifier，OpenSSL 可能会报错。解决方式是为根证书生成包含 SKI 的 v3 CA 证书，或使用上面这种允许回退到 issuer/serial 的写法。</p>
+<p><code>openssl ca</code>使用文本数据库记录生成的证书，这里先创建一个数据库索引文件：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">mkdir db</span><br><span class="line">touch db/index</span><br></pre></td></tr></table></figure>
+
+<p>生成中间证书：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">openssl ca -config intermediateCA.conf -days 365 -create_serial -in intermediate.csr -out intermediate.crt -extensions ca_ext -notext</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p><img src="fig-21.png"></p>
+<ul>
+<li>生成Alice的私钥和CSR</li>
+</ul>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">openssl req -new -nodes -keyout Alice.key -out Alice.csr</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>使用中间证书签发Alice的用户证书</li>
+</ul>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">openssl x509 -req -in Alice.csr -CA intermediate.crt -CAkey intermediate.key -CAcreateserial -out Alice.crt</span><br></pre></td></tr></table></figure>
+
+<p>生产级用户证书同样应添加用途扩展，例如服务端证书应包含<code>extendedKeyUsage = serverAuth</code>和正确的 SAN，客户端证书应包含<code>clientAuth</code>。</p>
+<ul>
+<li>Bob对Alice的用户证书进行验证</li>
+</ul>
+<p>需同时指明根证书和中间证书：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">openssl verify -CAfile rootCA.crt -untrusted intermediate.crt Alice.crt</span><br></pre></td></tr></table></figure>
+
+<p>也可以把多个中间证书放到同一个非信任链文件中，再通过<code>-untrusted</code>提供给 OpenSSL：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">cat intermediate.crt &gt; untrusted-chain.crt</span><br><span class="line">openssl verify -CAfile rootCA.crt -untrusted untrusted-chain.crt Alice.crt</span><br></pre></td></tr></table></figure>
+
+<p>真实场景下根证书来自本地信任库，服务端一般只发送叶子证书和中间证书，不发送根证书。验证方以本地信任锚为起点，结合对端提供的中间证书构建证书链。</p>
+<h2 id="交叉认证"><a href="#交叉认证" class="headerlink" title="交叉认证"></a>交叉认证</h2><p>在签发证书时，多个CA可为同一个主体和公钥签发不同证书。因此，同一个主体公钥可以出现在多张由不同上级证书签发的证书中，验证方也可能构建出多条合法证书链：</p>
+<p><img src="fig-22.png"></p>
+<p>在上图中，我们采用了CA1来为User1签发证书，CA1有一个自签名的根证书，同时采用CA2的根证书为CA1签发了一个中间证书，这样User1就处在了两条合法的证书链上（分别用实线和虚线表示）。</p>
+<ul>
+<li>User 1 Certificate -&gt; CA1 Self-signed Certificate</li>
+<li>User 1 Certificate -&gt; CA1 Certificate Issued by CA2 -&gt; CA2 Self-signed Certificate</li>
+</ul>
+<p>这两条链都是合法的，都可以对User1的证书进行验证。同理，也可以用CA1为CA2签发一个中间证书，使CA2颁发的用户证书也处于两条合法的证书链上。这种方式被称为交叉认证。通过交叉认证，可以在两个CA之间建立互信关系，也可以在根证书迁移期间让新老信任链并行工作。</p>
+<p>CA根证书更新：</p>
+<p>通过这种方式还可以实现CA的根证书更新。进行根证书更新时，CA生成一对新的密钥对和根证书，然后用新的私钥为老的公钥签名生成一个交叉证书，并用老的私钥为新的公钥签名生成一个交叉证书。这样，无论客户端只信任旧根还是只信任新根，都可能在过渡期构建出可用证书链，从而实现CA新老根证书的平滑过渡。</p>
+<h1 id="概念"><a href="#概念" class="headerlink" title="概念"></a>概念</h1><h2 id="SSL"><a href="#SSL" class="headerlink" title="SSL"></a>SSL</h2><h3 id="SSL-TLS"><a href="#SSL-TLS" class="headerlink" title="SSL/TLS"></a>SSL/TLS</h3><p>Secure Sockets Layer，新版本叫 TLS。现在通常应使用 TLS 1.2 或 TLS 1.3；SSL 2.0、SSL 3.0 以及早期 TLS 版本已经不应继续使用。</p>
+<p>在 HTTPS/TLS 中，证书主要用于证明服务端身份，并参与握手中的密钥协商或签名认证。真正加密业务数据的一般不是证书里的公钥，而是握手后协商出来的对称会话密钥。</p>
+<p>以访问 <code>https://example.com</code> 为例，客户端收到服务端证书链后，通常会做这些检查：</p>
+<ul>
+<li>证书链能否连接到本地信任库中的根证书</li>
+<li>链中每一级证书的签名、有效期、CA 约束和用途约束是否正确</li>
+<li>叶子证书的 SAN 是否包含 <code>example.com</code></li>
+<li>证书是否被吊销，算法和密钥长度是否满足当前安全要求</li>
+<li>服务端是否持有叶子证书公钥对应的私钥</li>
+</ul>
+<p>最后一项不是靠“看证书”完成的，而是在 TLS 握手中证明。例如 TLS 1.3 使用临时密钥交换生成会话密钥，服务端再用证书对应的私钥对握手上下文签名，客户端用证书中的公钥验签。这样既确认了服务端身份，又避免直接用长期证书密钥加密业务数据。老式 TLS 1.2 中曾存在 RSA 密钥交换模式，但它不具备前向安全性，现代配置一般使用 ECDHE/DHE 类临时密钥交换。</p>
+<h3 id="OpenSSL"><a href="#OpenSSL" class="headerlink" title="OpenSSL"></a>OpenSSL</h3><p>SSL/TLS 本质上是一组协议规范，OpenSSL 是常见的开源实现之一，同时也提供了大量通用密码学和证书处理命令。</p>
+<h1 id="证书"><a href="#证书" class="headerlink" title="证书"></a>证书</h1><h2 id="标准"><a href="#标准" class="headerlink" title="标准"></a>标准</h2><p>X.509证书标准主要定义了证书中应该包含哪些内容，可参考 RFC5280。HTTPS 证书还会受浏览器根证书计划、CA/B Forum Baseline Requirements、域名匹配规则等约束。</p>
+<h2 id="编码格式"><a href="#编码格式" class="headerlink" title="编码格式"></a>编码格式</h2><h3 id="PEM"><a href="#PEM" class="headerlink" title="PEM"></a>PEM</h3><ul>
+<li>Privacy Enhanced Mail，以<code>-----BEGIN...</code>开头，<code>-----END...</code>结尾，中间内容通常是 DER 二进制数据的 Base64 编码；</li>
+</ul>
+<p><img src="fig-23.png"></p>
+<ul>
+<li>查看PEM格式证书内容：</li>
+</ul>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">openssl x509 -in cert.pem -text -noout  # 不输出原始PEM内容</span><br><span class="line">openssl x509 -in cert.pem -text</span><br></pre></td></tr></table></figure>
+
+<p><img src="fig-24.png"></p>
+<ul>
+<li>Apache和*NIX服务器偏向于使用这种编码格式</li>
+</ul>
+<h3 id="DER"><a href="#DER" class="headerlink" title="DER"></a>DER</h3><ul>
+<li>Distinguished Encoding Rules，ASN.1 的二进制编码格式，直接打开通常不可读</li>
+<li>查看DER格式证书信息：</li>
+</ul>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">openssl x509 -in cert.der -inform der -text -noout</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>DER也常见于 Java、Windows 等生态中的证书文件</li>
+</ul>
+<h3 id="证书编码转换"><a href="#证书编码转换" class="headerlink" title="证书编码转换"></a>证书编码转换</h3><p>PEM转为DER：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">openssl x509 -in cert.crt -outform der -out cert.der</span><br></pre></td></tr></table></figure>
+
+<p>DER转为PEM：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">openssl x509 -in cert.crt -inform der -outform pem -out cert.pem</span><br></pre></td></tr></table></figure>
+
+<p>要转换私钥文件可使用<code>openssl pkey</code>，转换CSR可使用<code>openssl req</code>，核心思路都是指定输入格式<code>-inform</code>和输出格式<code>-outform</code>：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">openssl pkey -in private.key -outform der -out private.der</span><br><span class="line">openssl req -in request.csr -outform der -out request.der</span><br></pre></td></tr></table></figure>
+
+<h2 id="证书文件扩展名"><a href="#证书文件扩展名" class="headerlink" title="证书文件扩展名"></a>证书文件扩展名</h2><h3 id="PEM-1"><a href="#PEM-1" class="headerlink" title="PEM"></a>PEM</h3><p>常见 PEM 文件以文本形式保存证书、CSR、公钥或私钥。仅凭扩展名无法判断里面具体是什么对象，需要看<code>BEGIN</code>行，例如<code>BEGIN CERTIFICATE</code>、<code>BEGIN PRIVATE KEY</code>、<code>BEGIN CERTIFICATE REQUEST</code>。</p>
+<h3 id="DER-1"><a href="#DER-1" class="headerlink" title="DER"></a>DER</h3><p>证书文件格式有PEM和DER两种，但文件扩展名并不止此两种；</p>
+<h3 id="CRT"><a href="#CRT" class="headerlink" title="CRT"></a>CRT</h3><p>常见于*NIX系统，可为PEM或DER编码，由文件内容来区分；</p>
+<h3 id="CER"><a href="#CER" class="headerlink" title="CER"></a>CER</h3><p>常见于Windows系统，可为PEM或DER编码，由文件内容来区分；</p>
+<h3 id="KEY"><a href="#KEY" class="headerlink" title="KEY"></a>KEY</h3><p>通常存放一个公钥或者私钥，并非X.509证书，编码可能为PEM或DER；</p>
+<p>查看KEY：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">openssl pkey -in mykey.key -text -noout</span><br><span class="line"></span><br><span class="line">DER格式：</span><br><span class="line">openssl pkey -in mykey.key -text -noout -inform der</span><br></pre></td></tr></table></figure>
+
+<p>如果明确知道是 RSA 私钥，也可以使用<code>openssl rsa</code>；更通用的方式是<code>openssl pkey</code>，因为现在私钥也可能是 EC、Ed25519 等类型。</p>
+<h3 id="CSR"><a href="#CSR" class="headerlink" title="CSR"></a>CSR</h3><p>Certificate Signing Request，证书签名请求，并不是一个证书，而是向证书颁发机构获得签名证书的申请，核心内容是一个公钥和一些身份信息；</p>
+<p>查看CSR：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">openssl req -noout -text -in my.csr</span><br><span class="line"></span><br><span class="line">DER格式：</span><br><span class="line">openssl req -noout -text -in my.csr  -inform der</span><br></pre></td></tr></table></figure>
+
+<h3 id="PFX-P12"><a href="#PFX-P12" class="headerlink" title="PFX/P12"></a>PFX/P12</h3><p>PFX/P12通常指 PKCS#12 文件。对*nix服务器来说，一般CRT和KEY是分开存放在不同文件中的，但Windows的IIS常将证书、私钥和证书链一起放在一个PFX/P12文件中；</p>
+<p>PFX通常会有一个”提取密码”，想把里面的东西读取出来就需要提供提取密码。它是二进制容器格式，不是普通文本 PEM；</p>
+<p>将PFX转换为PEM编码：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">openssl pkcs12 -in for-iis.pfx -out for-iis.pem -nodes</span><br></pre></td></tr></table></figure>
+
+<p>这个命令会提示输入提取密码，其中生成的<code>for-iis.pem</code>就是可读的文本。</p>
+<p>生成pfx：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">openssl pkcs12 -export -in certificate.crt -inkey privateKey.key -out certificate.pfx -certfile CACert.crt</span><br></pre></td></tr></table></figure>
+
+<p>其中CACert.crt通常是证书链中的CA证书，有的话也通过-certfile参数一起带进去。注意，生产环境里通常放入中间证书即可，根证书一般由客户端本地信任库提供。PFX可以理解为一个同时保存证书、私钥和证书链的密钥库文件</p>
+<h3 id="JKS"><a href="#JKS" class="headerlink" title="JKS"></a>JKS</h3><p>Java KeyStore，是 Java 生态中常见的密钥库格式，跟OpenSSL关系不大。可以利用 Java 的<code>keytool</code>工具将PFX/P12转为JKS，当然<code>keytool</code>也能直接生成JKS。较新的 Java 版本也支持直接使用 PKCS#12 作为 keystore 格式</p>
+<h1 id="参考文章"><a href="#参考文章" class="headerlink" title="参考文章"></a>参考文章</h1><ul>
+<li><a target="_blank" rel="noopener" href="https://www.rfc-editor.org/rfc/rfc5280">RFC 5280: Internet X.509 Public Key Infrastructure Certificate and CRL Profile</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.rfc-editor.org/rfc/rfc2986">RFC 2986: PKCS #10 Certification Request Syntax</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.rfc-editor.org/rfc/rfc8446">RFC 8446: The Transport Layer Security Protocol Version 1.3</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.zhaohuabing.com/post/2020-03-19-pki/">https://www.zhaohuabing.com/post/2020-03-19-pki/</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.twilio.com/blog/what-is-public-key-cryptography">https://www.twilio.com/blog/what-is-public-key-cryptography</a></li>
+<li><a target="_blank" rel="noopener" href="https://zhaohuabing.com/post/2018-05-12-cryptocurrency_week1_hash_pointer_and_data_structures/">Hash Pointers and Data Structures</a></li>
+<li><a target="_blank" rel="noopener" href="https://zhaohuabing.com/2018/05/12/cryptocurrency_week1_digital_signature/">Digital Signature and Public Key as Identities</a></li>
+<li><a target="_blank" rel="noopener" href="https://sg.godaddy.com/en/help/what-is-an-intermediate-certificate-868">What is an intermediate certificate?</a></li>
+<li><a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/X.509">wikipedia X.509</a></li>
+<li>证书相关概念：<a target="_blank" rel="noopener" href="https://www.cnblogs.com/guogangj/p/4118605.html">https://www.cnblogs.com/guogangj/p/4118605.html</a></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E6%95%B0%E5%AD%97%E8%AF%81%E4%B9%A6/" rel="tag"># 数字证书</a>
+              <a href="/tags/PKI/" rel="tag"># PKI</a>
+              <a href="/tags/%E6%95%B0%E5%AD%97%E7%AD%BE%E5%90%8D/" rel="tag"># 数字签名</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2022/01/16/Java%E4%B8%ADXXE%E5%88%A9%E7%94%A8-%E9%80%9A%E8%BF%87URL%E6%8A%A5%E9%94%99%E8%AF%BB%E6%96%87%E4%BB%B6/" rel="prev" title="Java中XXE利用-通过URL报错读文件">
+      <i class="fa fa-chevron-left"></i> Java中XXE利用-通过URL报错读文件
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%AF%B9%E7%A7%B0%E5%8A%A0%E5%AF%86"><span class="nav-number">1.</span> <span class="nav-text">对称加密</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E9%9D%9E%E5%AF%B9%E7%A7%B0%E5%8A%A0%E5%AF%86"><span class="nav-number">2.</span> <span class="nav-text">非对称加密</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8A%A0%E8%A7%A3%E5%AF%86%E7%A4%BA%E4%BE%8B"><span class="nav-number">2.1.</span> <span class="nav-text">加解密示例</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%93%88%E5%B8%8C%E5%87%BD%E6%95%B0"><span class="nav-number">3.</span> <span class="nav-text">哈希函数</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%95%B0%E5%AD%97%E7%AD%BE%E5%90%8D"><span class="nav-number">4.</span> <span class="nav-text">数字签名</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%9D%9E%E5%AF%B9%E7%A7%B0%E7%AE%97%E6%B3%95-gt-%E6%95%B0%E5%AD%97%E7%AD%BE%E5%90%8D"><span class="nav-number">4.1.</span> <span class="nav-text">非对称算法-&gt;数字签名</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%9D%9E%E5%AF%B9%E7%A7%B0-amp-%E5%93%88%E5%B8%8C-gt-%E6%95%B0%E5%AD%97%E7%AD%BE%E5%90%8D"><span class="nav-number">4.2.</span> <span class="nav-text">非对称&amp;哈希-&gt;数字签名</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%95%B0%E5%AD%97%E7%AD%BE%E5%90%8D-amp-%E9%AA%8C%E8%AF%81%E8%BF%87%E7%A8%8B"><span class="nav-number">4.3.</span> <span class="nav-text">数字签名&amp;验证过程</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%95%B0%E5%AD%97%E8%AF%81%E4%B9%A6"><span class="nav-number">5.</span> <span class="nav-text">数字证书</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%95%B0%E5%AD%97%E8%AF%81%E4%B9%A6%E6%A0%87%E5%87%86"><span class="nav-number">5.1.</span> <span class="nav-text">数字证书标准</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%AF%81%E4%B9%A6%E5%88%9B%E5%BB%BA"><span class="nav-number">5.2.</span> <span class="nav-text">证书创建</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%87%AA%E7%AD%BE%E5%90%8D%E8%AF%81%E4%B9%A6"><span class="nav-number">5.3.</span> <span class="nav-text">自签名证书</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%AF%81%E4%B9%A6%E6%9C%BA%E6%9E%84"><span class="nav-number">5.4.</span> <span class="nav-text">证书机构</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%95%B0%E5%AD%97%E8%AF%81%E4%B9%A6%E7%AD%BE%E5%8F%91%E9%AA%8C%E8%AF%81%E8%BF%87%E7%A8%8B"><span class="nav-number">5.5.</span> <span class="nav-text">数字证书签发验证过程</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%AF%81%E4%B9%A6%E9%93%BE"><span class="nav-number">5.6.</span> <span class="nav-text">证书链</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%A4%E5%8F%89%E8%AE%A4%E8%AF%81"><span class="nav-number">5.7.</span> <span class="nav-text">交叉认证</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%A6%82%E5%BF%B5"><span class="nav-number">6.</span> <span class="nav-text">概念</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#SSL"><span class="nav-number">6.1.</span> <span class="nav-text">SSL</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#SSL-TLS"><span class="nav-number">6.1.1.</span> <span class="nav-text">SSL&#x2F;TLS</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#OpenSSL"><span class="nav-number">6.1.2.</span> <span class="nav-text">OpenSSL</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E8%AF%81%E4%B9%A6"><span class="nav-number">7.</span> <span class="nav-text">证书</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%A0%87%E5%87%86"><span class="nav-number">7.1.</span> <span class="nav-text">标准</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%BC%96%E7%A0%81%E6%A0%BC%E5%BC%8F"><span class="nav-number">7.2.</span> <span class="nav-text">编码格式</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#PEM"><span class="nav-number">7.2.1.</span> <span class="nav-text">PEM</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#DER"><span class="nav-number">7.2.2.</span> <span class="nav-text">DER</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%AF%81%E4%B9%A6%E7%BC%96%E7%A0%81%E8%BD%AC%E6%8D%A2"><span class="nav-number">7.2.3.</span> <span class="nav-text">证书编码转换</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%AF%81%E4%B9%A6%E6%96%87%E4%BB%B6%E6%89%A9%E5%B1%95%E5%90%8D"><span class="nav-number">7.3.</span> <span class="nav-text">证书文件扩展名</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#PEM-1"><span class="nav-number">7.3.1.</span> <span class="nav-text">PEM</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#DER-1"><span class="nav-number">7.3.2.</span> <span class="nav-text">DER</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#CRT"><span class="nav-number">7.3.3.</span> <span class="nav-text">CRT</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#CER"><span class="nav-number">7.3.4.</span> <span class="nav-text">CER</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#KEY"><span class="nav-number">7.3.5.</span> <span class="nav-text">KEY</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#CSR"><span class="nav-number">7.3.6.</span> <span class="nav-text">CSR</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#PFX-P12"><span class="nav-number">7.3.7.</span> <span class="nav-text">PFX&#x2F;P12</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#JKS"><span class="nav-number">7.3.8.</span> <span class="nav-text">JKS</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%8F%82%E8%80%83%E6%96%87%E7%AB%A0"><span class="nav-number">8.</span> <span class="nav-text">参考文章</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="ttestoo"
+      src="/images/avator.jpg">
+  <p class="site-author-name" itemprop="name">ttestoo</p>
+  <div class="site-description" itemprop="description">不争</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">7</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+        <span class="site-state-item-count">14</span>
+        <span class="site-state-item-name">分类</span>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-name">标签</span>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/ttestoo" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;ttestoo" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:test@qq.com" title="E-Mail → mailto:test@qq.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+  <div class="links-of-blogroll motion-element">
+    <div class="links-of-blogroll-title">
+      <i class="fa fa-fw fa-link"></i>
+      Links
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="https://ttestoo.github.io/" title="https:&#x2F;&#x2F;ttestoo.github.io&#x2F;">Title</a>
+        </li>
+    </ul>
+  </div>
+
+      </div>
+        <div class="back-to-top motion-element">
+          <i class="fa fa-arrow-up"></i>
+          <span>0%</span>
+        </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2021 – 
+  <span itemprop="copyrightYear">2026</span>
+  <span class="with-love">
+    <i class="fa fa-fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ttestoo</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+      <span class="post-meta-item-text">站点总字数：</span>
+    <span title="站点总字数">63k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+      <span class="post-meta-item-text">站点阅读时长 &asymp;</span>
+    <span title="站点阅读时长">58 分钟</span>
+</div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
