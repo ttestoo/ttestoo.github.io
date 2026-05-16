@@ -1,0 +1,1158 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+  <meta name="baidu-site-verification" content="code-IgVCkP0vYS">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"ttestoo.github.io","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":"mac"},"back2top":{"enable":true,"sidebar":true,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="OIDC(OpenID Connect)检查结论与修正点原文的主线是正确的：OIDC 是建立在 OAuth 2.0 之上的身份认证协议，核心扩展是 id_token 和标准化的用户信息获取方式。需要修正和补充的点主要有：  「微信登录第三方软件便是 OIDC 标准实现」这个说法不严谨。微信开放平台登录&#x2F;网页授权更接近 OAuth 2.0 风格的三方登录，通常返回 access_token、open">
+<meta property="og:type" content="article">
+<meta property="og:title" content="OIDC(OpenID Connect)">
+<meta property="og:url" content="https://ttestoo.github.io/2023/02/01/OIDC-OpenID-Connect/index.html">
+<meta property="og:site_name" content="ttestoo&#39;s blog">
+<meta property="og:description" content="OIDC(OpenID Connect)检查结论与修正点原文的主线是正确的：OIDC 是建立在 OAuth 2.0 之上的身份认证协议，核心扩展是 id_token 和标准化的用户信息获取方式。需要修正和补充的点主要有：  「微信登录第三方软件便是 OIDC 标准实现」这个说法不严谨。微信开放平台登录&#x2F;网页授权更接近 OAuth 2.0 风格的三方登录，通常返回 access_token、open">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://ttestoo.github.io/2023/02/01/OIDC-OpenID-Connect/images/oidc-overview.png">
+<meta property="og:image" content="https://ttestoo.github.io/2023/02/01/OIDC-OpenID-Connect/images/oidc-authorization-code-flow.png">
+<meta property="og:image" content="https://ttestoo.github.io/2023/02/01/OIDC-OpenID-Connect/images/oidc-implicit-flow.png">
+<meta property="og:image" content="https://ttestoo.github.io/2023/02/01/OIDC-OpenID-Connect/images/oidc-hybrid-flow.png">
+<meta property="og:image" content="https://ttestoo.github.io/2023/02/01/OIDC-OpenID-Connect/images/oidc-rp-initiated-logout.png">
+<meta property="og:image" content="https://ttestoo.github.io/2023/02/01/OIDC-OpenID-Connect/images/google-authorization-code-flow.png">
+<meta property="og:image" content="https://ttestoo.github.io/2023/02/01/OIDC-OpenID-Connect/images/google-implicit-flow.png">
+<meta property="og:image" content="https://ttestoo.github.io/2023/02/01/OIDC-OpenID-Connect/images/oidc-vs-oauth2.png">
+<meta property="article:published_time" content="2023-01-31T16:00:00.000Z">
+<meta property="article:modified_time" content="2026-05-15T16:00:00.000Z">
+<meta property="article:author" content="ttestoo">
+<meta property="article:tag" content="OIDC">
+<meta property="article:tag" content="OpenID Connect">
+<meta property="article:tag" content="OAuth 2.0">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://ttestoo.github.io/2023/02/01/OIDC-OpenID-Connect/images/oidc-overview.png">
+
+<link rel="canonical" href="https://ttestoo.github.io/2023/02/01/OIDC-OpenID-Connect/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>OIDC(OpenID Connect) | ttestoo's blog</title>
+  
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?2509b78f4891a940e38e443a10f826fa";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="ttestoo's blog" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">ttestoo's blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">领悟。</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档<span class="badge">13</span></a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签<span class="badge">31</span></a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类<span class="badge">24</span></a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://ttestoo.github.io/2023/02/01/OIDC-OpenID-Connect/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avator.jpg">
+      <meta itemprop="name" content="ttestoo">
+      <meta itemprop="description" content="不争">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ttestoo's blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          OIDC(OpenID Connect)
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2023-02-01 00:00:00" itemprop="dateCreated datePublished" datetime="2023-02-01T00:00:00+08:00">2023-02-01</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2026-05-16 00:00:00" itemprop="dateModified" datetime="2026-05-16T00:00:00+08:00">2026-05-16</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E8%BA%AB%E4%BB%BD%E8%AE%A4%E8%AF%81/" itemprop="url" rel="index"><span itemprop="name">身份认证</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E8%BA%AB%E4%BB%BD%E8%AE%A4%E8%AF%81/OIDC/" itemprop="url" rel="index"><span itemprop="name">OIDC</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>12k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>10 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="OIDC-OpenID-Connect"><a href="#OIDC-OpenID-Connect" class="headerlink" title="OIDC(OpenID Connect)"></a>OIDC(OpenID Connect)</h1><h2 id="检查结论与修正点"><a href="#检查结论与修正点" class="headerlink" title="检查结论与修正点"></a>检查结论与修正点</h2><p>原文的主线是正确的：OIDC 是建立在 OAuth 2.0 之上的身份认证协议，核心扩展是 <code>id_token</code> 和标准化的用户信息获取方式。需要修正和补充的点主要有：</p>
+<ol>
+<li>「微信登录第三方软件便是 OIDC 标准实现」这个说法不严谨。微信开放平台登录/网页授权更接近 OAuth 2.0 风格的三方登录，通常返回 <code>access_token</code>、<code>openid</code>、<code>unionid</code> 等，并不等同于标准 OIDC；Google 登录是更典型的 OIDC 应用。</li>
+<li><code>UserInfo Endpoint</code> 应使用 <code>access_token</code> 作为 Bearer Token 访问，不是携带 <code>id_token</code> 查询用户详细信息。</li>
+<li>OAuth 2.0 的 <code>access_token</code> 不一定是 JWT，可能是不透明字符串。只有在授权服务器采用 JWT access token 时，才可解析出类似 JSON 的 claims。</li>
+<li>隐式流程和混合流程仍属于 OIDC Core 规范内容，但现代安全实践中不应作为默认推荐方案。当前默认优先使用 Authorization Code Flow，并结合 PKCE。</li>
+<li>原文登出部分把 Session Management 和 RP-Initiated Logout 混在一起。真正由 RP 主动发起跳转登出的规范是 RP-Initiated Logout；Session Management 主要用于监控 OP 登录状态变化。</li>
+<li>ID Token 校验内容不完整，需要补充签名、<code>iss</code>、<code>aud</code>、<code>exp</code>、<code>nonce</code>、<code>azp</code>、<code>at_hash</code>/<code>c_hash</code> 等校验点。</li>
+<li>原文存在少量拼写和格式问题，例如 <code>Oauth</code> 应写作 <code>OAuth</code>，<code>Autherization</code> 应写作 <code>Authorization</code>，<code>Implici</code> 应写作 <code>Implicit</code>，<code>Hybrid Flow[</code> 多了方括号。</li>
+</ol>
+<h2 id="OIDC-介绍"><a href="#OIDC-介绍" class="headerlink" title="OIDC 介绍"></a>OIDC 介绍</h2><p>OpenID Connect，简称 OIDC，是建立在 OAuth 2.0 之上的身份认证层。OAuth 2.0 解决的是「授权」问题：第三方客户端如何代表用户访问受保护资源；OIDC 在此基础上解决「认证」问题：第三方客户端如何确认当前登录用户是谁。</p>
+<p>可以简化理解为：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">OIDC = OAuth 2.0 授权框架 + 身份认证层 + 标准化用户信息接口</span><br></pre></td></tr></table></figure>
+
+<p>OIDC 客户端通过在授权请求中加入 <code>scope=openid</code> 来声明这是一次 OIDC 认证请求。OP 完成用户认证后，会向客户端返回 <code>id_token</code>。<code>id_token</code> 是一个 JWT，里面包含用户身份、签发方、受众、过期时间等 claims，RP 可以通过校验它来确认用户身份。</p>
+<span id="more"></span>
+
+<p><img src="images/oidc-overview.png" alt="OIDC 协议概览"></p>
+<h2 id="OIDC-和-OAuth-2-0-的区别"><a href="#OIDC-和-OAuth-2-0-的区别" class="headerlink" title="OIDC 和 OAuth 2.0 的区别"></a>OIDC 和 OAuth 2.0 的区别</h2><p>OAuth 2.0 关注授权，核心产物是 <code>access_token</code>。客户端拿到 <code>access_token</code> 后，可以访问资源服务器上的受保护资源，例如读取用户头像、联系人或订单等。</p>
+<p>OIDC 关注认证，核心产物是 <code>id_token</code>。客户端拿到 <code>id_token</code> 后，可以验证用户身份，并基于 <code>sub</code> 等 claims 建立本系统内的登录会话。</p>
+<table>
+<thead>
+<tr>
+<th align="left">对比项</th>
+<th align="left">OAuth 2.0</th>
+<th align="left">OIDC</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">核心目标</td>
+<td align="left">授权访问资源</td>
+<td align="left">认证用户身份</td>
+</tr>
+<tr>
+<td align="left">核心 token</td>
+<td align="left"><code>access_token</code></td>
+<td align="left"><code>id_token</code>，通常也会有 <code>access_token</code></td>
+</tr>
+<tr>
+<td align="left">用户是谁</td>
+<td align="left">OAuth 2.0 本身不标准化身份信息</td>
+<td align="left">通过 <code>id_token.sub</code> 等 claims 表示</td>
+</tr>
+<tr>
+<td align="left">用户信息接口</td>
+<td align="left">不规定标准接口</td>
+<td align="left">标准化 <code>UserInfo Endpoint</code></td>
+</tr>
+<tr>
+<td align="left">请求标识</td>
+<td align="left">普通 OAuth scope</td>
+<td align="left">必须包含 <code>openid</code> scope</td>
+</tr>
+<tr>
+<td align="left">常见应用</td>
+<td align="left">API 授权</td>
+<td align="left">单点登录、三方登录、身份联邦</td>
+</tr>
+</tbody></table>
+<p>需要注意：不要把「用 OAuth 2.0 做登录」直接等同于 OIDC。很多系统历史上会用 OAuth 2.0 的资源接口拿用户信息来完成登录，但这不是标准 OIDC。标准 OIDC 必须有 <code>openid</code> scope 和 <code>id_token</code>。</p>
+<h2 id="OIDC-协议族"><a href="#OIDC-协议族" class="headerlink" title="OIDC 协议族"></a>OIDC 协议族</h2><p>OIDC 不只是一条认证流程，还包含一组配套规范：</p>
+<table>
+<thead>
+<tr>
+<th align="left">规范</th>
+<th align="left">作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">OpenID Connect Core</td>
+<td align="left">定义核心认证流程、<code>id_token</code>、<code>UserInfo Endpoint</code>、claims 和安全要求</td>
+</tr>
+<tr>
+<td align="left">OpenID Connect Discovery</td>
+<td align="left">通过 <code>.well-known/openid-configuration</code> 发现 OP 的端点、JWKS 地址和能力</td>
+</tr>
+<tr>
+<td align="left">OpenID Connect Dynamic Client Registration</td>
+<td align="left">动态注册客户端，获取 <code>client_id</code> 等客户端信息</td>
+</tr>
+<tr>
+<td align="left">OpenID Connect RP-Initiated Logout</td>
+<td align="left">RP 主动把用户重定向到 OP 的登出端点</td>
+</tr>
+<tr>
+<td align="left">OpenID Connect Session Management</td>
+<td align="left">RP 监控用户在 OP 的登录状态变化</td>
+</tr>
+<tr>
+<td align="left">OpenID Connect Front-Channel Logout</td>
+<td align="left">OP 通过浏览器前端通道通知 RP 登出</td>
+</tr>
+<tr>
+<td align="left">OpenID Connect Back-Channel Logout</td>
+<td align="left">OP 通过后端通道通知 RP 登出</td>
+</tr>
+</tbody></table>
+<p>典型的 Discovery 地址如下：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">https://&#123;issuer&#125;/.well-known/openid-configuration</span><br></pre></td></tr></table></figure>
+
+<p>Discovery 文档通常会包含：</p>
+<table>
+<thead>
+<tr>
+<th align="left">字段</th>
+<th align="left">含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left"><code>issuer</code></td>
+<td align="left">OP 的签发者标识，必须和 <code>id_token.iss</code> 匹配</td>
+</tr>
+<tr>
+<td align="left"><code>authorization_endpoint</code></td>
+<td align="left">发起认证请求的授权端点</td>
+</tr>
+<tr>
+<td align="left"><code>token_endpoint</code></td>
+<td align="left">用授权码换取 token 的端点</td>
+</tr>
+<tr>
+<td align="left"><code>userinfo_endpoint</code></td>
+<td align="left">获取用户 claims 的端点</td>
+</tr>
+<tr>
+<td align="left"><code>jwks_uri</code></td>
+<td align="left">OP 公钥集合地址，用于验证 ID Token 签名</td>
+</tr>
+<tr>
+<td align="left"><code>end_session_endpoint</code></td>
+<td align="left">RP-Initiated Logout 的登出端点，不是所有 OP 都支持</td>
+</tr>
+<tr>
+<td align="left"><code>response_types_supported</code></td>
+<td align="left">支持的 <code>response_type</code></td>
+</tr>
+<tr>
+<td align="left"><code>scopes_supported</code></td>
+<td align="left">支持的 scope</td>
+</tr>
+<tr>
+<td align="left"><code>id_token_signing_alg_values_supported</code></td>
+<td align="left">支持的 ID Token 签名算法</td>
+</tr>
+</tbody></table>
+<h2 id="OIDC-角色"><a href="#OIDC-角色" class="headerlink" title="OIDC 角色"></a>OIDC 角色</h2><p>OIDC 中有三个核心角色：</p>
+<table>
+<thead>
+<tr>
+<th align="left">角色</th>
+<th align="left">全称</th>
+<th align="left">含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">EU</td>
+<td align="left">End User</td>
+<td align="left">最终用户</td>
+</tr>
+<tr>
+<td align="left">RP</td>
+<td align="left">Relying Party</td>
+<td align="left">依赖 OP 进行身份认证的客户端，也就是第三方应用</td>
+</tr>
+<tr>
+<td align="left">OP</td>
+<td align="left">OpenID Provider</td>
+<td align="left">提供身份认证服务的身份提供方</td>
+</tr>
+</tbody></table>
+<p>在 OAuth 2.0 的术语里，OP 同时承担 Authorization Server 的角色；如果 UserInfo 也由同一服务提供，它也相当于一个受保护资源服务。</p>
+<h2 id="核心概念"><a href="#核心概念" class="headerlink" title="核心概念"></a>核心概念</h2><h3 id="ID-Token"><a href="#ID-Token" class="headerlink" title="ID Token"></a>ID Token</h3><p>ID Token 是 OIDC 相对 OAuth 2.0 最核心的扩展。它是 OP 签发给 RP 的身份令牌，通常采用 JWT 格式，用来说明「OP 已经认证过这个用户，并把认证结果发给指定客户端」。</p>
+<p>典型 ID Token payload 示例：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;iss&quot;</span><span class="punctuation">:</span> <span class="string">&quot;https://accounts.google.com&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;sub&quot;</span><span class="punctuation">:</span> <span class="string">&quot;10769150350006150715113082367&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;aud&quot;</span><span class="punctuation">:</span> <span class="string">&quot;1234987819200.apps.googleusercontent.com&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;exp&quot;</span><span class="punctuation">:</span> <span class="number">1710000000</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;iat&quot;</span><span class="punctuation">:</span> <span class="number">1709996400</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;nonce&quot;</span><span class="punctuation">:</span> <span class="string">&quot;0394852-3190485-2490358&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;email&quot;</span><span class="punctuation">:</span> <span class="string">&quot;alice@example.com&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;email_verified&quot;</span><span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;name&quot;</span><span class="punctuation">:</span> <span class="string">&quot;Alice&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;picture&quot;</span><span class="punctuation">:</span> <span class="string">&quot;https://example.com/photo.jpg&quot;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>常见 claims：</p>
+<table>
+<thead>
+<tr>
+<th align="left">Claim</th>
+<th align="left">必选/常见</th>
+<th align="left">含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left"><code>iss</code></td>
+<td align="left">必选</td>
+<td align="left">签发者，必须和 Discovery 的 <code>issuer</code> 一致</td>
+</tr>
+<tr>
+<td align="left"><code>sub</code></td>
+<td align="left">必选</td>
+<td align="left">用户在该 OP 下的稳定唯一标识</td>
+</tr>
+<tr>
+<td align="left"><code>aud</code></td>
+<td align="left">必选</td>
+<td align="left">令牌受众，通常是 RP 的 <code>client_id</code></td>
+</tr>
+<tr>
+<td align="left"><code>exp</code></td>
+<td align="left">必选</td>
+<td align="left">过期时间</td>
+</tr>
+<tr>
+<td align="left"><code>iat</code></td>
+<td align="left">必选</td>
+<td align="left">签发时间</td>
+</tr>
+<tr>
+<td align="left"><code>auth_time</code></td>
+<td align="left">条件必选</td>
+<td align="left">用户完成认证的时间，使用 <code>max_age</code> 时必须返回</td>
+</tr>
+<tr>
+<td align="left"><code>nonce</code></td>
+<td align="left">条件必选</td>
+<td align="left">防重放值，隐式/混合流程必须重点校验，授权码流程也建议使用</td>
+</tr>
+<tr>
+<td align="left"><code>azp</code></td>
+<td align="left">条件必选</td>
+<td align="left">授权展示方，多个 audience 或特定场景需要校验</td>
+</tr>
+<tr>
+<td align="left"><code>at_hash</code></td>
+<td align="left">条件必选/可选</td>
+<td align="left">Access Token hash。隐式/混合流程从授权端点返回 access token 时需要校验；授权码流程中若 token endpoint 返回的 ID Token 包含该 claim，也可用于绑定校验</td>
+</tr>
+<tr>
+<td align="left"><code>c_hash</code></td>
+<td align="left">条件必选</td>
+<td align="left">Authorization Code hash，混合流程从授权端点返回 code 和 ID Token 时用于绑定校验</td>
+</tr>
+</tbody></table>
+<h3 id="Access-Token"><a href="#Access-Token" class="headerlink" title="Access Token"></a>Access Token</h3><p>Access Token 是授权令牌，用于访问资源服务器或 UserInfo Endpoint。它的格式由授权服务器决定，可能是 JWT，也可能是不透明字符串。RP 不应把 access token 当作用户身份凭证使用。</p>
+<p>如果某个授权服务器采用 JWT access token，它可能长这样：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;iss&quot;</span><span class="punctuation">:</span> <span class="string">&quot;https://auth.example.com/&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;aud&quot;</span><span class="punctuation">:</span> <span class="string">&quot;https://api.example.com/&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;exp&quot;</span><span class="punctuation">:</span> <span class="number">1710000000</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;scope&quot;</span><span class="punctuation">:</span> <span class="string">&quot;read write&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;sub&quot;</span><span class="punctuation">:</span> <span class="string">&quot;user123&quot;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>但这只是某类实现，不是 OAuth 2.0 或 OIDC 对 access token 的通用要求。</p>
+<h3 id="UserInfo-Endpoint"><a href="#UserInfo-Endpoint" class="headerlink" title="UserInfo Endpoint"></a>UserInfo Endpoint</h3><p>OIDC 提供标准的 <code>UserInfo Endpoint</code> 来获取用户 claims。客户端访问该端点时，必须使用从 OIDC 认证流程中获得的 <code>access_token</code>，并按 Bearer Token 方式发送：</p>
+<figure class="highlight http"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">GET</span> <span class="string">/userinfo</span> <span class="meta">HTTP/1.1</span></span><br><span class="line"><span class="attribute">Host</span><span class="punctuation">: </span>server.example.com</span><br><span class="line"><span class="attribute">Authorization</span><span class="punctuation">: </span>Bearer ACCESS_TOKEN</span><br></pre></td></tr></table></figure>
+
+<p>UserInfo 响应必须包含 <code>sub</code>。RP 使用 UserInfo 响应前，必须确认 <code>userinfo.sub</code> 和 <code>id_token.sub</code> 完全一致，否则不能使用该响应，避免 token 替换攻击。</p>
+<p>示例响应：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;sub&quot;</span><span class="punctuation">:</span> <span class="string">&quot;user123&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;name&quot;</span><span class="punctuation">:</span> <span class="string">&quot;Alice&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;email&quot;</span><span class="punctuation">:</span> <span class="string">&quot;alice@example.com&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;email_verified&quot;</span><span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;picture&quot;</span><span class="punctuation">:</span> <span class="string">&quot;https://example.com/photo.jpg&quot;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="OIDC-流程"><a href="#OIDC-流程" class="headerlink" title="OIDC 流程"></a>OIDC 流程</h2><h3 id="基础流程"><a href="#基础流程" class="headerlink" title="基础流程"></a>基础流程</h3><p>OIDC 的抽象流程主要有 5 步：</p>
+<ol>
+<li>RP 向 OP 发送认证请求。</li>
+<li>OP 对 EU 进行身份认证，并根据需要征求用户授权。</li>
+<li>OP 把认证结果返回给 RP。不同流程中返回内容不同，可能是 <code>code</code>、<code>id_token</code>、<code>access_token</code> 的组合。</li>
+<li>RP 使用 <code>access_token</code> 请求 OP 的 UserInfo Endpoint。</li>
+<li>UserInfo Endpoint 返回 EU 的 claims。</li>
+</ol>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">+--------+                                   +--------+</span><br><span class="line">|        |                                   |        |</span><br><span class="line">|        |---------(1) AuthN Request--------&gt;|        |</span><br><span class="line">|        |                                   |        |</span><br><span class="line">|        |  +--------+                       |        |</span><br><span class="line">|        |  |        |                       |        |</span><br><span class="line">|        |  |  End-  |&lt;--(2) AuthN &amp; AuthZ--&gt;|        |</span><br><span class="line">|        |  |  User  |                       |        |</span><br><span class="line">|   RP   |  |        |                       |   OP   |</span><br><span class="line">|        |  +--------+                       |        |</span><br><span class="line">|        |                                   |        |</span><br><span class="line">|        |&lt;--------(3) AuthN Response--------|        |</span><br><span class="line">|        |                                   |        |</span><br><span class="line">|        |---------(4) UserInfo Request-----&gt;|        |</span><br><span class="line">|        |                                   |        |</span><br><span class="line">|        |&lt;--------(5) UserInfo Response-----|        |</span><br><span class="line">|        |                                   |        |</span><br><span class="line">+--------+                                   +--------+</span><br></pre></td></tr></table></figure>
+
+<h3 id="Authentication-Request-常见参数"><a href="#Authentication-Request-常见参数" class="headerlink" title="Authentication Request 常见参数"></a>Authentication Request 常见参数</h3><p>OIDC 认证请求是在 OAuth 2.0 Authorization Request 的基础上扩展而来，常见参数如下：</p>
+<table>
+<thead>
+<tr>
+<th align="left">参数</th>
+<th align="left">是否必选</th>
+<th align="left">说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left"><code>scope</code></td>
+<td align="left">必选</td>
+<td align="left">必须包含 <code>openid</code>，可附加 <code>profile</code>、<code>email</code>、<code>address</code>、<code>phone</code> 等</td>
+</tr>
+<tr>
+<td align="left"><code>response_type</code></td>
+<td align="left">必选</td>
+<td align="left">决定使用授权码、隐式还是混合流程</td>
+</tr>
+<tr>
+<td align="left"><code>client_id</code></td>
+<td align="left">必选</td>
+<td align="left">RP 在 OP 注册得到的客户端 ID</td>
+</tr>
+<tr>
+<td align="left"><code>redirect_uri</code></td>
+<td align="left">必选</td>
+<td align="left">OP 完成认证后的回调地址，必须和注册值匹配</td>
+</tr>
+<tr>
+<td align="left"><code>state</code></td>
+<td align="left">推荐</td>
+<td align="left">防 CSRF，并用于把响应和请求上下文绑定</td>
+</tr>
+<tr>
+<td align="left"><code>nonce</code></td>
+<td align="left">条件必选/推荐</td>
+<td align="left">防重放。隐式和混合流程通常必须使用，授权码流程也建议使用</td>
+</tr>
+<tr>
+<td align="left"><code>prompt</code></td>
+<td align="left">可选</td>
+<td align="left">控制是否强制登录、授权确认、选择账号等</td>
+</tr>
+<tr>
+<td align="left"><code>max_age</code></td>
+<td align="left">可选</td>
+<td align="left">要求用户最近一次认证不能超过指定秒数</td>
+</tr>
+<tr>
+<td align="left"><code>login_hint</code></td>
+<td align="left">可选</td>
+<td align="left">给 OP 的登录账号提示</td>
+</tr>
+<tr>
+<td align="left"><code>acr_values</code></td>
+<td align="left">可选</td>
+<td align="left">请求特定认证强度或认证上下文</td>
+</tr>
+</tbody></table>
+<h2 id="三种认证流程"><a href="#三种认证流程" class="headerlink" title="三种认证流程"></a>三种认证流程</h2><p>OIDC Core 定义了三类认证流程：Authorization Code Flow、Implicit Flow、Hybrid Flow。</p>
+<h3 id="Authorization-Code-Flow"><a href="#Authorization-Code-Flow" class="headerlink" title="Authorization Code Flow"></a>Authorization Code Flow</h3><p>Authorization Code Flow 是当前最推荐的 OIDC 流程。它先从授权端点返回 <code>code</code>，再由 RP 后端向 token endpoint 换取 <code>id_token</code>、<code>access_token</code>，必要时还会返回 <code>refresh_token</code>。这种方式不会把 token 暴露在浏览器前端重定向中，也允许 OP 在 token endpoint 对客户端进行认证。</p>
+<p>现代实现建议同时使用 PKCE，即使是传统 Web 服务端应用也建议支持。PKCE 可以把授权码和发起认证的客户端实例绑定，降低授权码注入或授权码泄漏后的风险。</p>
+<p><img src="images/oidc-authorization-code-flow.png" alt="OIDC Authorization Code Flow"></p>
+<p>简化流程：</p>
+<ol>
+<li>RP 生成 <code>state</code>、<code>nonce</code>，如果启用 PKCE，还要生成 <code>code_verifier</code> 和 <code>code_challenge</code>。</li>
+<li>RP 把浏览器重定向到 OP 的 <code>authorization_endpoint</code>。</li>
+<li>用户在 OP 完成登录和授权。</li>
+<li>OP 将浏览器重定向回 <code>redirect_uri</code>，并携带 <code>code</code> 和 <code>state</code>。</li>
+<li>RP 校验 <code>state</code>，向 <code>token_endpoint</code> 提交 <code>code</code>、<code>redirect_uri</code>、客户端认证信息和 <code>code_verifier</code>。</li>
+<li>OP 返回 <code>id_token</code>、<code>access_token</code>，以及可选的 <code>refresh_token</code>。</li>
+<li>RP 校验 ID Token，创建本地登录会话。</li>
+<li>RP 可使用 <code>access_token</code> 请求 UserInfo Endpoint 或业务 API。</li>
+</ol>
+<h3 id="Implicit-Flow"><a href="#Implicit-Flow" class="headerlink" title="Implicit Flow"></a>Implicit Flow</h3><p>Implicit Flow 会直接从授权端点把 <code>id_token</code> 或 <code>access_token</code> 返回给浏览器前端。OIDC Core 中仍定义了该流程，典型 <code>response_type</code> 是 <code>id_token</code> 或 <code>id_token token</code>。</p>
+<p><img src="images/oidc-implicit-flow.png" alt="OIDC Implicit Flow"></p>
+<p>这个流程历史上常用于纯浏览器应用，但现在不建议作为默认方案。原因是 token 会经过浏览器前端通道，暴露面更大；同时 <code>response_type=token</code> 这类直接在授权响应中返回 access token 的方式已经被 OAuth 2.0 安全最佳实践明确降级。现代 SPA/移动端更应使用 Authorization Code Flow + PKCE。</p>
+<h3 id="Hybrid-Flow"><a href="#Hybrid-Flow" class="headerlink" title="Hybrid Flow"></a>Hybrid Flow</h3><p>Hybrid Flow 是 Authorization Code Flow 和 Implicit Flow 的组合，会在授权端点同时返回 <code>code</code> 和部分 token，典型 <code>response_type</code> 包括 <code>code id_token</code>、<code>code token</code>、<code>code id_token token</code>。</p>
+<p><img src="images/oidc-hybrid-flow.png" alt="OIDC Hybrid Flow"></p>
+<p>Hybrid Flow 可用于需要前端立即获得认证结果，同时后端继续换取 token 的场景。由于它仍会让部分 token 或 ID Token 经过浏览器前端通道，实现复杂度和安全校验要求更高，必须校验 <code>nonce</code>、<code>c_hash</code>、<code>at_hash</code>、<code>state</code> 等绑定关系。</p>
+<h3 id="三种流程对比"><a href="#三种流程对比" class="headerlink" title="三种流程对比"></a>三种流程对比</h3><table>
+<thead>
+<tr>
+<th align="left">特性</th>
+<th align="left">授权码模式</th>
+<th align="left">隐式模式</th>
+<th align="left">混合模式</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">所有 token 全部从授权端点返回</td>
+<td align="left">no</td>
+<td align="left">yes</td>
+<td align="left">no</td>
+</tr>
+<tr>
+<td align="left">所有 token 都从 token endpoint 返回</td>
+<td align="left">yes</td>
+<td align="left">no</td>
+<td align="left">no</td>
+</tr>
+<tr>
+<td align="left">token 不暴露给浏览器前端通道</td>
+<td align="left">yes</td>
+<td align="left">no</td>
+<td align="left">no</td>
+</tr>
+<tr>
+<td align="left">OP 可以在 token endpoint 认证客户端</td>
+<td align="left">yes</td>
+<td align="left">no</td>
+<td align="left">yes</td>
+</tr>
+<tr>
+<td align="left">支持 refresh token</td>
+<td align="left">yes</td>
+<td align="left">no</td>
+<td align="left">yes</td>
+</tr>
+<tr>
+<td align="left">是否推荐作为现代默认方案</td>
+<td align="left">yes，配合 PKCE</td>
+<td align="left">no</td>
+<td align="left">特定场景谨慎使用</td>
+</tr>
+<tr>
+<td align="left">典型使用场景</td>
+<td align="left">服务端 Web、SPA、移动端、桌面端</td>
+<td align="left">旧式浏览器应用</td>
+<td align="left">特定高阶身份场景</td>
+</tr>
+</tbody></table>
+<h3 id="response-type-与流程对应关系"><a href="#response-type-与流程对应关系" class="headerlink" title="response_type 与流程对应关系"></a>response_type 与流程对应关系</h3><table>
+<thead>
+<tr>
+<th align="left"><code>response_type</code> 值</th>
+<th align="left">Flow</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left"><code>code</code></td>
+<td align="left">Authorization Code Flow</td>
+</tr>
+<tr>
+<td align="left"><code>id_token</code></td>
+<td align="left">Implicit Flow</td>
+</tr>
+<tr>
+<td align="left"><code>id_token token</code></td>
+<td align="left">Implicit Flow</td>
+</tr>
+<tr>
+<td align="left"><code>code id_token</code></td>
+<td align="left">Hybrid Flow</td>
+</tr>
+<tr>
+<td align="left"><code>code token</code></td>
+<td align="left">Hybrid Flow</td>
+</tr>
+<tr>
+<td align="left"><code>code id_token token</code></td>
+<td align="left">Hybrid Flow</td>
+</tr>
+</tbody></table>
+<h2 id="ID-Token-校验"><a href="#ID-Token-校验" class="headerlink" title="ID Token 校验"></a>ID Token 校验</h2><p>RP 在使用 ID Token 建立本地会话前，必须完成校验。不同库会自动完成一部分，但理解校验项很重要。</p>
+<h3 id="1-获取-OP-元数据和公钥"><a href="#1-获取-OP-元数据和公钥" class="headerlink" title="1. 获取 OP 元数据和公钥"></a>1. 获取 OP 元数据和公钥</h3><p>先通过 Discovery 获取 OP 配置：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">https://&#123;issuer&#125;/.well-known/openid-configuration</span><br></pre></td></tr></table></figure>
+
+<p>从中读取：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;issuer&quot;</span><span class="punctuation">:</span> <span class="string">&quot;https://issuer.example.com&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;jwks_uri&quot;</span><span class="punctuation">:</span> <span class="string">&quot;https://issuer.example.com/.well-known/jwks.json&quot;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>再从 <code>jwks_uri</code> 获取 JWK Set，根据 ID Token header 中的 <code>kid</code> 选择对应公钥。</p>
+<p>ID Token header 示例：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;alg&quot;</span><span class="punctuation">:</span> <span class="string">&quot;RS256&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;kid&quot;</span><span class="punctuation">:</span> <span class="string">&quot;6a1d26d992be7a4b689bdce1911f4e9adc75d9f1&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;typ&quot;</span><span class="punctuation">:</span> <span class="string">&quot;JWT&quot;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="2-校验签名和算法"><a href="#2-校验签名和算法" class="headerlink" title="2. 校验签名和算法"></a>2. 校验签名和算法</h3><p>使用 OP 的公钥校验 JWT 签名，确认 token 确实由 OP 签发且未被篡改。同时要确认 <code>alg</code> 是该 OP Discovery 文档中允许的算法，不能信任攻击者在 JWT header 中随意声明的算法。</p>
+<h3 id="3-校验标准-claims"><a href="#3-校验标准-claims" class="headerlink" title="3. 校验标准 claims"></a>3. 校验标准 claims</h3><p>必须校验：</p>
+<table>
+<thead>
+<tr>
+<th align="left">校验项</th>
+<th align="left">要求</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left"><code>iss</code></td>
+<td align="left">必须等于 Discovery 中的 <code>issuer</code></td>
+</tr>
+<tr>
+<td align="left"><code>aud</code></td>
+<td align="left">必须包含当前 RP 的 <code>client_id</code></td>
+</tr>
+<tr>
+<td align="left"><code>exp</code></td>
+<td align="left">当前时间不能超过过期时间</td>
+</tr>
+<tr>
+<td align="left"><code>iat</code></td>
+<td align="left">签发时间应合理，可结合本地时钟偏移容忍</td>
+</tr>
+<tr>
+<td align="left"><code>nonce</code></td>
+<td align="left">如果请求中发送了 <code>nonce</code>，响应 ID Token 必须匹配</td>
+</tr>
+<tr>
+<td align="left"><code>azp</code></td>
+<td align="left">多 audience 或 OP 要求时，必须等于当前授权展示方</td>
+</tr>
+<tr>
+<td align="left"><code>auth_time</code></td>
+<td align="left">请求使用 <code>max_age</code> 时必须存在，并满足认证时间要求</td>
+</tr>
+</tbody></table>
+<h3 id="4-校验绑定关系"><a href="#4-校验绑定关系" class="headerlink" title="4. 校验绑定关系"></a>4. 校验绑定关系</h3><p>如果隐式/混合流程在授权端点响应中同时返回 <code>access_token</code> 和 ID Token，需要校验 <code>at_hash</code>，确认 access token 和 ID Token 属于同一次授权响应。授权码流程中，如果 token endpoint 返回的 ID Token 包含 <code>at_hash</code>，客户端也可以按规范使用它校验 access token 绑定关系；如果 OP 未返回该 claim，则不应把缺失本身直接视作协议错误。</p>
+<p>如果使用 Hybrid Flow，并且授权端点响应中同时包含 <code>code</code> 和 ID Token，需要校验 <code>c_hash</code>，确认 authorization code 和 ID Token 绑定。</p>
+<h3 id="5-创建本地会话"><a href="#5-创建本地会话" class="headerlink" title="5. 创建本地会话"></a>5. 创建本地会话</h3><p>ID Token 校验通过后，RP 应使用 <code>sub</code> 作为用户在该 OP 下的稳定唯一标识。不要把 <code>email</code> 当作唯一主键，因为邮箱可能变更、可能未验证，也可能在不同身份源中重复。</p>
+<h2 id="OIDC-登出流程"><a href="#OIDC-登出流程" class="headerlink" title="OIDC 登出流程"></a>OIDC 登出流程</h2><p>OIDC 的登录会话通常涉及三层：</p>
+<ol>
+<li>RP 自己的本地应用会话，例如业务系统 Cookie。</li>
+<li>OP 的登录会话，例如 Google、企业 IdP、Keycloak、Authing 等身份提供方会话。</li>
+<li>多个 RP 之间的单点登录/单点登出状态。</li>
+</ol>
+<p>因此「退出登录」也要分清楚退出的是哪一层。</p>
+<h3 id="RP-本地登出"><a href="#RP-本地登出" class="headerlink" title="RP 本地登出"></a>RP 本地登出</h3><p>最基础的登出是 RP 清理本地 session 或 Cookie。这只能让用户退出当前应用，不一定会退出 OP，也不一定会退出其他已登录的 RP。</p>
+<h3 id="RP-Initiated-Logout"><a href="#RP-Initiated-Logout" class="headerlink" title="RP-Initiated Logout"></a>RP-Initiated Logout</h3><p>RP-Initiated Logout 是 RP 主动请求 OP 登出的规范。RP 通常通过 Discovery 获取 <code>end_session_endpoint</code>，然后把浏览器重定向到该地址。</p>
+<p><img src="images/oidc-rp-initiated-logout.png" alt="OIDC RP-Initiated Logout"></p>
+<p>典型请求：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">GET https://op.example.com/logout?</span><br><span class="line">  id_token_hint=ID_TOKEN&amp;</span><br><span class="line">  post_logout_redirect_uri=https%3A%2F%2Fclient.example.com%2Flogged-out&amp;</span><br><span class="line">  state=af0ifjsldkj</span><br></pre></td></tr></table></figure>
+
+<p>常见参数：</p>
+<table>
+<thead>
+<tr>
+<th align="left">参数</th>
+<th align="left">说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left"><code>id_token_hint</code></td>
+<td align="left">推荐传入。提示 OP 要退出哪个用户会话</td>
+</tr>
+<tr>
+<td align="left"><code>post_logout_redirect_uri</code></td>
+<td align="left">OP 登出后跳回 RP 的地址，必须与预注册值匹配</td>
+</tr>
+<tr>
+<td align="left"><code>state</code></td>
+<td align="left">可选。OP 回跳时原样返回，RP 用于关联登出请求和响应</td>
+</tr>
+<tr>
+<td align="left"><code>client_id</code></td>
+<td align="left">可选。部分 OP 在没有 <code>id_token_hint</code> 时用它识别客户端</td>
+</tr>
+</tbody></table>
+<p>注意：OP 是否真的结束用户在 OP 的全局会话，取决于 OP 策略和用户交互。RP 不能只依赖跳转完成就假设所有系统都已退出。</p>
+<h3 id="Session-Management、Front-Channel-Logout、Back-Channel-Logout"><a href="#Session-Management、Front-Channel-Logout、Back-Channel-Logout" class="headerlink" title="Session Management、Front-Channel Logout、Back-Channel Logout"></a>Session Management、Front-Channel Logout、Back-Channel Logout</h3><p>Session Management 不是 RP 主动登出的同义词，它主要用于 RP 通过浏览器 iframe 检查用户在 OP 的登录状态是否变化，并在发现状态变化后触发本地登出或重新认证。</p>
+<p>Front-Channel Logout 是 OP 通过浏览器前端通道通知多个 RP 登出。Back-Channel Logout 是 OP 通过服务器后端通道通知 RP 登出，通常更可靠，但要求 RP 提供可被 OP 调用的后端登出接口。</p>
+<p>实际系统中经常组合使用：</p>
+<ol>
+<li>用户点击 RP 的退出按钮：RP 清理本地会话，并可重定向到 OP 的 <code>end_session_endpoint</code>。</li>
+<li>用户在 OP 或其他 RP 退出：OP 通过 Front-Channel/Back-Channel/Session Management 通知当前 RP。</li>
+<li>RP 收到通知后清理本地会话。</li>
+</ol>
+<h2 id="Google-登录"><a href="#Google-登录" class="headerlink" title="Google 登录"></a>Google 登录</h2><p>Google 登录是 OIDC 的典型实现之一。Google 的 issuer 通常是：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">https://accounts.google.com</span><br></pre></td></tr></table></figure>
+
+<p>Google Discovery 地址：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">https://accounts.google.com/.well-known/openid-configuration</span><br></pre></td></tr></table></figure>
+
+<p>常见端点：</p>
+<table>
+<thead>
+<tr>
+<th align="left">端点</th>
+<th align="left">作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left"><code>authorization_endpoint</code></td>
+<td align="left">发起 Google 登录</td>
+</tr>
+<tr>
+<td align="left"><code>token_endpoint</code></td>
+<td align="left">用授权码换取 token</td>
+</tr>
+<tr>
+<td align="left"><code>userinfo_endpoint</code></td>
+<td align="left">获取用户信息</td>
+</tr>
+<tr>
+<td align="left"><code>jwks_uri</code></td>
+<td align="left">获取 Google ID Token 签名公钥</td>
+</tr>
+</tbody></table>
+<h3 id="Authorization-Code-Flow-1"><a href="#Authorization-Code-Flow-1" class="headerlink" title="Authorization Code Flow"></a>Authorization Code Flow</h3><p>Authorization Code Flow 是服务端 Web 应用最常见的 Google 登录方式。</p>
+<p><img src="images/google-authorization-code-flow.png" alt="Google Authorization Code Flow"></p>
+<p>简化流程：</p>
+<ol>
+<li>用户访问业务系统，业务系统发现未登录。</li>
+<li>业务系统生成 <code>state</code>、<code>nonce</code>，并将浏览器重定向到 Google 授权端点。</li>
+<li>用户在 Google 完成登录和授权。</li>
+<li>Google 重定向回业务系统回调地址，携带 <code>code</code> 和 <code>state</code>。</li>
+<li>业务系统校验 <code>state</code>，用 <code>code</code> 请求 Google token endpoint。</li>
+<li>Google 返回 <code>id_token</code> 和 <code>access_token</code>。</li>
+<li>业务系统获取 Google JWKS，校验 <code>id_token</code>。</li>
+<li>校验通过后，根据 <code>sub</code> 绑定或创建本地用户，并创建本地 session。</li>
+</ol>
+<h3 id="Implicit-Flow-1"><a href="#Implicit-Flow-1" class="headerlink" title="Implicit Flow"></a>Implicit Flow</h3><p>Google 也支持过浏览器前端直接接收 ID Token 的方式，历史上常被称为 implicit flow 或 one-tap/sign-in 前端模式的一部分。</p>
+<p><img src="images/google-implicit-flow.png" alt="Google Implicit Flow"></p>
+<p>如果 ID Token 从浏览器客户端发送到后端，后端仍必须完整校验 ID Token。不要因为 token 来自前端 SDK 就跳过签名、issuer、audience 和过期时间校验。</p>
+<p>现代新系统应优先选用 Authorization Code Flow + PKCE 或 Google Identity Services 当前推荐的集成方式，而不是自行新建隐式流程。</p>
+<h3 id="Google-ID-Token-校验"><a href="#Google-ID-Token-校验" class="headerlink" title="Google ID Token 校验"></a>Google ID Token 校验</h3><p>Google ID Token 校验要点：</p>
+<ol>
+<li>从 Google Discovery 文档读取 <code>jwks_uri</code>，获取当前签名公钥。公钥会轮换，需要按 HTTP cache header 或库机制缓存。</li>
+<li>校验 JWT 签名，确认 <code>kid</code> 对应的公钥可验证签名。</li>
+<li>校验 <code>iss</code>，Google ID Token 的 issuer 应为 <code>https://accounts.google.com</code> 或 <code>accounts.google.com</code>。</li>
+<li>校验 <code>aud</code>，必须等于当前应用的 Google OAuth Client ID。</li>
+<li>校验 <code>exp</code>，不能接受过期 token。</li>
+<li>如果请求中使用了 <code>nonce</code>，必须校验 ID Token 中的 <code>nonce</code>。</li>
+<li>如果使用 Google Workspace 域限制，校验 <code>hd</code> claim 是否符合允许的域。</li>
+<li>使用 <code>sub</code> 作为用户唯一标识，不要使用 <code>email</code> 作为主键。</li>
+</ol>
+<h2 id="OIDC-和-OAuth-2-0-的区别示意"><a href="#OIDC-和-OAuth-2-0-的区别示意" class="headerlink" title="OIDC 和 OAuth 2.0 的区别示意"></a>OIDC 和 OAuth 2.0 的区别示意</h2><p><img src="images/oidc-vs-oauth2.png" alt="OIDC 和 OAuth 2.0 对比"></p>
+<p>可以概括为：</p>
+<ol>
+<li>OAuth 2.0 只定义授权框架，<code>access_token</code> 是访问资源的凭证。</li>
+<li>OIDC 在 OAuth 2.0 上增加身份认证语义，<code>id_token</code> 是用户身份认证结果。</li>
+<li>OIDC 的 UserInfo Endpoint 使用 <code>access_token</code> 访问，返回用户 claims。</li>
+<li>RP 建立本地登录态时，应依赖校验后的 <code>id_token</code>，并用 <code>sub</code> 绑定本地账号。</li>
+<li>常见的 Google 登录是 OIDC 应用；微信登录等三方登录不一定是标准 OIDC。</li>
+</ol>
+<h2 id="实践建议"><a href="#实践建议" class="headerlink" title="实践建议"></a>实践建议</h2><ol>
+<li>新系统默认使用 Authorization Code Flow + PKCE。</li>
+<li>认证请求必须包含 <code>openid</code> scope。</li>
+<li>始终使用 <code>state</code> 防 CSRF，建议同时使用 <code>nonce</code> 防重放和授权码注入。</li>
+<li><code>redirect_uri</code> 必须精确匹配预注册地址，不要使用过宽泛的通配规则。</li>
+<li>后端必须校验 ID Token 后再创建本地 session。</li>
+<li>UserInfo Endpoint 必须用 <code>access_token</code> 调用，且要校验 <code>userinfo.sub == id_token.sub</code>。</li>
+<li>不要把 access token 当作登录态，不要把 ID Token 当作访问业务 API 的授权凭证。</li>
+<li>不要把 <code>email</code> 当作跨身份源唯一主键；优先使用 <code>issuer + sub</code>。</li>
+<li>保存 token 时按敏感凭证处理，传输必须使用 HTTPS。</li>
+<li>如果需要单点登出，优先确认 OP 支持哪类登出规范，再设计 RP 本地 session 清理逻辑。</li>
+</ol>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
+<li>OIDC Core: <a target="_blank" rel="noopener" href="https://openid.net/specs/openid-connect-core-1_0.html">https://openid.net/specs/openid-connect-core-1_0.html</a></li>
+<li>OIDC Discovery: <a target="_blank" rel="noopener" href="https://openid.net/specs/openid-connect-discovery-1_0.html">https://openid.net/specs/openid-connect-discovery-1_0.html</a></li>
+<li>OIDC RP-Initiated Logout: <a target="_blank" rel="noopener" href="https://openid.net/specs/openid-connect-rpinitiated-1_0.html">https://openid.net/specs/openid-connect-rpinitiated-1_0.html</a></li>
+<li>OIDC Session Management: <a target="_blank" rel="noopener" href="https://openid.net/specs/openid-connect-session-1_0.html">https://openid.net/specs/openid-connect-session-1_0.html</a></li>
+<li>Google OpenID Connect: <a target="_blank" rel="noopener" href="https://developers.google.com/identity/openid-connect/openid-connect">https://developers.google.com/identity/openid-connect/openid-connect</a></li>
+<li>OAuth 2.0 Security Best Current Practice: <a target="_blank" rel="noopener" href="https://www.rfc-editor.org/rfc/rfc9700.html">https://www.rfc-editor.org/rfc/rfc9700.html</a></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/OIDC/" rel="tag"># OIDC</a>
+              <a href="/tags/OpenID-Connect/" rel="tag"># OpenID Connect</a>
+              <a href="/tags/OAuth-2-0/" rel="tag"># OAuth 2.0</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2022/11/01/js%E5%8E%9F%E5%9E%8B%E6%B1%A1%E6%9F%93%E9%97%AE%E9%A2%98/" rel="prev" title="js原型污染问题">
+      <i class="fa fa-chevron-left"></i> js原型污染问题
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2024/02/01/FIDO%E8%BA%AB%E4%BB%BD%E8%AE%A4%E8%AF%81%E6%96%B9%E5%BC%8F/" rel="next" title="FIDO身份认证方式">
+      FIDO身份认证方式 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#OIDC-OpenID-Connect"><span class="nav-number">1.</span> <span class="nav-text">OIDC(OpenID Connect)</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%A3%80%E6%9F%A5%E7%BB%93%E8%AE%BA%E4%B8%8E%E4%BF%AE%E6%AD%A3%E7%82%B9"><span class="nav-number">1.1.</span> <span class="nav-text">检查结论与修正点</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#OIDC-%E4%BB%8B%E7%BB%8D"><span class="nav-number">1.2.</span> <span class="nav-text">OIDC 介绍</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#OIDC-%E5%92%8C-OAuth-2-0-%E7%9A%84%E5%8C%BA%E5%88%AB"><span class="nav-number">1.3.</span> <span class="nav-text">OIDC 和 OAuth 2.0 的区别</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#OIDC-%E5%8D%8F%E8%AE%AE%E6%97%8F"><span class="nav-number">1.4.</span> <span class="nav-text">OIDC 协议族</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#OIDC-%E8%A7%92%E8%89%B2"><span class="nav-number">1.5.</span> <span class="nav-text">OIDC 角色</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%A0%B8%E5%BF%83%E6%A6%82%E5%BF%B5"><span class="nav-number">1.6.</span> <span class="nav-text">核心概念</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#ID-Token"><span class="nav-number">1.6.1.</span> <span class="nav-text">ID Token</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Access-Token"><span class="nav-number">1.6.2.</span> <span class="nav-text">Access Token</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#UserInfo-Endpoint"><span class="nav-number">1.6.3.</span> <span class="nav-text">UserInfo Endpoint</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#OIDC-%E6%B5%81%E7%A8%8B"><span class="nav-number">1.7.</span> <span class="nav-text">OIDC 流程</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%9F%BA%E7%A1%80%E6%B5%81%E7%A8%8B"><span class="nav-number">1.7.1.</span> <span class="nav-text">基础流程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Authentication-Request-%E5%B8%B8%E8%A7%81%E5%8F%82%E6%95%B0"><span class="nav-number">1.7.2.</span> <span class="nav-text">Authentication Request 常见参数</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%89%E7%A7%8D%E8%AE%A4%E8%AF%81%E6%B5%81%E7%A8%8B"><span class="nav-number">1.8.</span> <span class="nav-text">三种认证流程</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Authorization-Code-Flow"><span class="nav-number">1.8.1.</span> <span class="nav-text">Authorization Code Flow</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Implicit-Flow"><span class="nav-number">1.8.2.</span> <span class="nav-text">Implicit Flow</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Hybrid-Flow"><span class="nav-number">1.8.3.</span> <span class="nav-text">Hybrid Flow</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%89%E7%A7%8D%E6%B5%81%E7%A8%8B%E5%AF%B9%E6%AF%94"><span class="nav-number">1.8.4.</span> <span class="nav-text">三种流程对比</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#response-type-%E4%B8%8E%E6%B5%81%E7%A8%8B%E5%AF%B9%E5%BA%94%E5%85%B3%E7%B3%BB"><span class="nav-number">1.8.5.</span> <span class="nav-text">response_type 与流程对应关系</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ID-Token-%E6%A0%A1%E9%AA%8C"><span class="nav-number">1.9.</span> <span class="nav-text">ID Token 校验</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E8%8E%B7%E5%8F%96-OP-%E5%85%83%E6%95%B0%E6%8D%AE%E5%92%8C%E5%85%AC%E9%92%A5"><span class="nav-number">1.9.1.</span> <span class="nav-text">1. 获取 OP 元数据和公钥</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E6%A0%A1%E9%AA%8C%E7%AD%BE%E5%90%8D%E5%92%8C%E7%AE%97%E6%B3%95"><span class="nav-number">1.9.2.</span> <span class="nav-text">2. 校验签名和算法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-%E6%A0%A1%E9%AA%8C%E6%A0%87%E5%87%86-claims"><span class="nav-number">1.9.3.</span> <span class="nav-text">3. 校验标准 claims</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-%E6%A0%A1%E9%AA%8C%E7%BB%91%E5%AE%9A%E5%85%B3%E7%B3%BB"><span class="nav-number">1.9.4.</span> <span class="nav-text">4. 校验绑定关系</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-%E5%88%9B%E5%BB%BA%E6%9C%AC%E5%9C%B0%E4%BC%9A%E8%AF%9D"><span class="nav-number">1.9.5.</span> <span class="nav-text">5. 创建本地会话</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#OIDC-%E7%99%BB%E5%87%BA%E6%B5%81%E7%A8%8B"><span class="nav-number">1.10.</span> <span class="nav-text">OIDC 登出流程</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#RP-%E6%9C%AC%E5%9C%B0%E7%99%BB%E5%87%BA"><span class="nav-number">1.10.1.</span> <span class="nav-text">RP 本地登出</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#RP-Initiated-Logout"><span class="nav-number">1.10.2.</span> <span class="nav-text">RP-Initiated Logout</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Session-Management%E3%80%81Front-Channel-Logout%E3%80%81Back-Channel-Logout"><span class="nav-number">1.10.3.</span> <span class="nav-text">Session Management、Front-Channel Logout、Back-Channel Logout</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Google-%E7%99%BB%E5%BD%95"><span class="nav-number">1.11.</span> <span class="nav-text">Google 登录</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Authorization-Code-Flow-1"><span class="nav-number">1.11.1.</span> <span class="nav-text">Authorization Code Flow</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Implicit-Flow-1"><span class="nav-number">1.11.2.</span> <span class="nav-text">Implicit Flow</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Google-ID-Token-%E6%A0%A1%E9%AA%8C"><span class="nav-number">1.11.3.</span> <span class="nav-text">Google ID Token 校验</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#OIDC-%E5%92%8C-OAuth-2-0-%E7%9A%84%E5%8C%BA%E5%88%AB%E7%A4%BA%E6%84%8F"><span class="nav-number">1.12.</span> <span class="nav-text">OIDC 和 OAuth 2.0 的区别示意</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%9E%E8%B7%B5%E5%BB%BA%E8%AE%AE"><span class="nav-number">1.13.</span> <span class="nav-text">实践建议</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%82%E8%80%83"><span class="nav-number">1.14.</span> <span class="nav-text">参考</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="ttestoo"
+      src="/images/avator.jpg">
+  <p class="site-author-name" itemprop="name">ttestoo</p>
+  <div class="site-description" itemprop="description">不争</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">13</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+        <span class="site-state-item-count">24</span>
+        <span class="site-state-item-name">分类</span>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">31</span>
+        <span class="site-state-item-name">标签</span>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/ttestoo" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;ttestoo" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:test@qq.com" title="E-Mail → mailto:test@qq.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+  <div class="links-of-blogroll motion-element">
+    <div class="links-of-blogroll-title">
+      <i class="fa fa-fw fa-link"></i>
+      Links
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="https://ttestoo.github.io/" title="https:&#x2F;&#x2F;ttestoo.github.io&#x2F;">Title</a>
+        </li>
+    </ul>
+  </div>
+
+      </div>
+        <div class="back-to-top motion-element">
+          <i class="fa fa-arrow-up"></i>
+          <span>0%</span>
+        </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2021 – 
+  <span itemprop="copyrightYear">2026</span>
+  <span class="with-love">
+    <i class="fa fa-fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ttestoo</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+      <span class="post-meta-item-text">站点总字数：</span>
+    <span title="站点总字数">118k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+      <span class="post-meta-item-text">站点阅读时长 &asymp;</span>
+    <span title="站点阅读时长">1:47</span>
+</div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

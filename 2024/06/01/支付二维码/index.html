@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+  <meta name="baidu-site-verification" content="code-IgVCkP0vYS">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"ttestoo.github.io","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":"mac"},"back2top":{"enable":true,"sidebar":true,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="支付二维码标准：QR Code、EMV QR Code、SGQR 与 QRIS二维码与 QR Code二维码是对一维条码的一次扩展：一维条码主要在单一方向上编码信息，二维码可以在水平和垂直两个方向上编码，因此在相同面积内能承载更多数据。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="支付二维码">
+<meta property="og:url" content="https://ttestoo.github.io/2024/06/01/%E6%94%AF%E4%BB%98%E4%BA%8C%E7%BB%B4%E7%A0%81/index.html">
+<meta property="og:site_name" content="ttestoo&#39;s blog">
+<meta property="og:description" content="支付二维码标准：QR Code、EMV QR Code、SGQR 与 QRIS二维码与 QR Code二维码是对一维条码的一次扩展：一维条码主要在单一方向上编码信息，二维码可以在水平和垂直两个方向上编码，因此在相同面积内能承载更多数据。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://ttestoo.github.io/2024/06/01/%E6%94%AF%E4%BB%98%E4%BA%8C%E7%BB%B4%E7%A0%81/images/01-barcode-vs-qrcode.png">
+<meta property="og:image" content="https://ttestoo.github.io/2024/06/01/%E6%94%AF%E4%BB%98%E4%BA%8C%E7%BB%B4%E7%A0%81/images/02-2d-code-types.png">
+<meta property="og:image" content="https://ttestoo.github.io/2024/06/01/%E6%94%AF%E4%BB%98%E4%BA%8C%E7%BB%B4%E7%A0%81/images/03-qr-code-types.png">
+<meta property="og:image" content="https://ttestoo.github.io/2024/06/01/%E6%94%AF%E4%BB%98%E4%BA%8C%E7%BB%B4%E7%A0%81/images/04-emv-qrcode-tlv-split.png">
+<meta property="og:image" content="https://ttestoo.github.io/2024/06/01/%E6%94%AF%E4%BB%98%E4%BA%8C%E7%BB%B4%E7%A0%81/images/05-emv-tag-value-table.png">
+<meta property="og:image" content="https://ttestoo.github.io/2024/06/01/%E6%94%AF%E4%BB%98%E4%BA%8C%E7%BB%B4%E7%A0%81/images/06-emv-mpm-tags.png">
+<meta property="og:image" content="https://ttestoo.github.io/2024/06/01/%E6%94%AF%E4%BB%98%E4%BA%8C%E7%BB%B4%E7%A0%81/images/07-emv-qrcode-parser-1.png">
+<meta property="og:image" content="https://ttestoo.github.io/2024/06/01/%E6%94%AF%E4%BB%98%E4%BA%8C%E7%BB%B4%E7%A0%81/images/08-emv-qrcode-parser-2.png">
+<meta property="og:image" content="https://ttestoo.github.io/2024/06/01/%E6%94%AF%E4%BB%98%E4%BA%8C%E7%BB%B4%E7%A0%81/images/09-crc-formatcrc-source.png">
+<meta property="og:image" content="https://ttestoo.github.io/2024/06/01/%E6%94%AF%E4%BB%98%E4%BA%8C%E7%BB%B4%E7%A0%81/images/10-crc-formatcrc-main.png">
+<meta property="og:image" content="https://ttestoo.github.io/2024/06/01/%E6%94%AF%E4%BB%98%E4%BA%8C%E7%BB%B4%E7%A0%81/images/11-crc-recalculation.png">
+<meta property="og:image" content="https://ttestoo.github.io/2024/06/01/%E6%94%AF%E4%BB%98%E4%BA%8C%E7%BB%B4%E7%A0%81/images/12-crc-local-code.png">
+<meta property="og:image" content="https://ttestoo.github.io/2024/06/01/%E6%94%AF%E4%BB%98%E4%BA%8C%E7%BB%B4%E7%A0%81/images/13-sgqr-label.png">
+<meta property="og:image" content="https://ttestoo.github.io/2024/06/01/%E6%94%AF%E4%BB%98%E4%BA%8C%E7%BB%B4%E7%A0%81/images/14-sgqr-vulnerability-survey.png">
+<meta property="article:published_time" content="2024-05-31T16:00:00.000Z">
+<meta property="article:modified_time" content="2026-05-15T16:00:00.000Z">
+<meta property="article:author" content="ttestoo">
+<meta property="article:tag" content="QR Code">
+<meta property="article:tag" content="EMV QR Code">
+<meta property="article:tag" content="SGQR">
+<meta property="article:tag" content="QRIS">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://ttestoo.github.io/2024/06/01/%E6%94%AF%E4%BB%98%E4%BA%8C%E7%BB%B4%E7%A0%81/images/01-barcode-vs-qrcode.png">
+
+<link rel="canonical" href="https://ttestoo.github.io/2024/06/01/%E6%94%AF%E4%BB%98%E4%BA%8C%E7%BB%B4%E7%A0%81/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>支付二维码 | ttestoo's blog</title>
+  
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?2509b78f4891a940e38e443a10f826fa";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="ttestoo's blog" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">ttestoo's blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">领悟。</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档<span class="badge">13</span></a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签<span class="badge">31</span></a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类<span class="badge">24</span></a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://ttestoo.github.io/2024/06/01/%E6%94%AF%E4%BB%98%E4%BA%8C%E7%BB%B4%E7%A0%81/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avator.jpg">
+      <meta itemprop="name" content="ttestoo">
+      <meta itemprop="description" content="不争">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ttestoo's blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          支付二维码
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2024-06-01 00:00:00" itemprop="dateCreated datePublished" datetime="2024-06-01T00:00:00+08:00">2024-06-01</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2026-05-16 00:00:00" itemprop="dateModified" datetime="2026-05-16T00:00:00+08:00">2026-05-16</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%94%AF%E4%BB%98%E5%AE%89%E5%85%A8/" itemprop="url" rel="index"><span itemprop="name">支付安全</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%94%AF%E4%BB%98%E5%AE%89%E5%85%A8/%E4%BA%8C%E7%BB%B4%E7%A0%81/" itemprop="url" rel="index"><span itemprop="name">二维码</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>7.3k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>7 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="支付二维码标准：QR-Code、EMV-QR-Code、SGQR-与-QRIS"><a href="#支付二维码标准：QR-Code、EMV-QR-Code、SGQR-与-QRIS" class="headerlink" title="支付二维码标准：QR Code、EMV QR Code、SGQR 与 QRIS"></a>支付二维码标准：QR Code、EMV QR Code、SGQR 与 QRIS</h1><h2 id="二维码与-QR-Code"><a href="#二维码与-QR-Code" class="headerlink" title="二维码与 QR Code"></a>二维码与 QR Code</h2><p>二维码是对一维条码的一次扩展：一维条码主要在单一方向上编码信息，二维码可以在水平和垂直两个方向上编码，因此在相同面积内能承载更多数据。</p>
+<span id="more"></span>
+
+<p><img src="images/01-barcode-vs-qrcode.png" alt="一维条码与二维码对比"></p>
+<p>需要注意的是，”二维码”是一个大类，QR Code 只是其中一种二维条码。常见二维条码还包括 PDF417、Data Matrix、MaxiCode、Aztec 等，不同码制在容量、识读速度、纠错、适用场景上各有差异。</p>
+<p><img src="images/02-2d-code-types.png" alt="常见二维条码类型对比"></p>
+<p>QR Code 由日本 DENSO WAVE 发明。DENSO WAVE 公开了 QR Code 规格，并声明对标准 QR Code 不行使其持有的专利权。QR Code 在 2000 年 6 月被采纳为 ISO 国际标准 ISO/IEC 18004；不过 ISO/IEC 18004:2000 已经被后续版本取代，当前可查询到的 ISO 正式版本是 ISO/IEC 18004:2024。</p>
+<p>标准 QR Code 的规格要点：</p>
+<ul>
+<li>符号尺寸从 <code>21 x 21</code> 到 <code>177 x 177</code> 码元，每提升一个版本，边长增加 4 个码元。</li>
+<li>最高容量取决于版本、纠错等级和编码模式。DENSO WAVE 给出的最大值为：数字 7,089 个、字母数字 4,296 个、8-bit 字节 2,953 个、汉字 1,817 个。</li>
+<li>纠错等级分为 L/M/Q/H，约可恢复 7%/15%/25%/30% 的码字。</li>
+</ul>
+<p>后来，支付宝、微信支付等把 QR Code 广泛应用到移动支付领域，形成了”用户扫商户码”和”商户扫用户码”两类常见产品形态。</p>
+<p>QR Code 也在不断演进。为了更小尺寸，有 Micro QR Code；为了更高容量和更多形态，有 iQR Code；为了受控读取，有 SQRC 等。注意：这些扩展码制的开放程度、商标和专利策略不完全等同于标准 QR Code，实际落地前需要确认相应规格和授权条件。</p>
+<p><img src="images/03-qr-code-types.png" alt="QR Code 家族类型"></p>
+<h2 id="EMV-QR-Code"><a href="#EMV-QR-Code" class="headerlink" title="EMV QR Code"></a>EMV QR Code</h2><h3 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h3><p>QR Code 只是信息载体，本身不定义支付字段。一个二维码里可以放 URL、文本、名片，也可以放支付参数。EMV QR Code 则是在 QR Code 载体之上，为支付场景定义的一套结构化数据格式。</p>
+<p>EMVCo 是维护 EMV 相关规范的技术组织。EMV 最初来自 Europay、Mastercard、Visa 三方的芯片卡支付规范；EMVCo 于 1999 年成立。现在 EMVCo 已不是”两大卡组织”维护的组织，而是由 American Express、Discover、JCB、Mastercard、UnionPay 和 Visa 六个成员组织共同拥有和管理。</p>
+<p>EMVCo 维护的支付交互标准包括接触式芯片、非接触式、Tokenisation、Mobile EMV、3-D Secure、Secure Remote Commerce，以及 EMV QR Code 等。</p>
+<p>EMV QR Code 规范分成两种场景：</p>
+<ul>
+<li>《EMV QR Code Specification for Payment Systems (EMV QRCPS) Consumer-Presented Mode》</li>
+<li>《EMV QR Code Specification for Payment Systems (EMV QRCPS) Merchant-Presented Mode》</li>
+</ul>
+<p>中文可以理解为：</p>
+<ul>
+<li>CPM（Consumer-Presented Mode，用户出示码）：付款人展示二维码，商户或收银设备扫描。国内通常称为”被扫”或”付款码”。</li>
+<li>MPM（Merchant-Presented Mode，商户出示码）：商户展示二维码，消费者用钱包 App 扫描。国内通常称为”主扫”或”收款码”。</li>
+</ul>
+<p>这里容易混淆：<strong>MPM 才是消费者主动扫码付款，CPM 是消费者出示付款码被商户扫描</strong>。</p>
+<p>EMVCo 在 2017 年公开发布 QR Code 支付规范。官方规范页目前列出的公开版本为 CPM v1.1 和 MPM v1.1，发布时间均为 2020 年 11 月 27 日；此外还有若干规范公告（Specification Bulletin），实现时应同时关注。</p>
+<p>规范下载地址：</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://www.emvco.com/emv-technologies/qr-codes/">EMVCo QR Codes</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.emvco.com/specifications/?post_id=12641">EMV QR Code Consumer-Presented Mode v1.1</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.emvco.com/specifications/?post_id=12643">EMV QR Code Merchant-Presented Mode v1.1</a></li>
+</ul>
+<p>原文附件：</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://www.yuque.com/attachments/yuque/0/2024/pdf/22449800/1718727968174-34bc5705-f0db-4b2b-a539-ad75b7676421.pdf">EMVCo-Consumer-Presented-QR-Specification-v1.1.pdf</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.yuque.com/attachments/yuque/0/2024/pdf/22449800/1718727968190-f1eb1146-1966-4660-a6ac-3ae51aff8be3.pdf">EMVCo-Merchant-Presented-QR-Specification-v1.1.pdf</a></li>
+</ul>
+<h3 id="EMV-QR-Code-数据结构"><a href="#EMV-QR-Code-数据结构" class="headerlink" title="EMV QR Code 数据结构"></a>EMV QR Code 数据结构</h3><p>下面是一个 EMV QR Code MPM 模式的二维码内容示例：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">00020101021229300012D156000000000510A93FO3230Q31280012D15600000001030812345678520441115802CN5914BEST TRANSPORT6007BEIJING64200002ZH0104最佳运输0202北京540523.7253031565502016233030412340603***0708A60086670902ME91320016A0112233449988770708123456786304A13A</span><br></pre></td></tr></table></figure>
+
+<p>EMV MPM 的数据对象采用 <code>ID + Length + Value</code> 结构，通常也会被口语化称为 TLV：</p>
+<ul>
+<li><code>ID</code>：2 位数字，表示数据对象编号。比如 <code>00</code>、<code>01</code>、<code>52</code>、<code>63</code>。</li>
+<li><code>Length</code>：2 位十进制数字，表示后面 <code>Value</code> 的字符数。</li>
+<li><code>Value</code>：实际字段值。部分字段本身又是嵌套的 <code>ID + Length + Value</code> 模板。</li>
+</ul>
+<p>例如：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">000201 = 00（ID）+ 02（长度）+ 01（值）</span><br></pre></td></tr></table></figure>
+
+<p>长度字段要按规范的字符数理解，不能简单按 UTF-8 字节数处理；但 CRC 计算时输入的是最终 payload 的字节序列。</p>
+<p>根据 TLV 结构，可将上述内容拆分：</p>
+<p><img src="images/04-emv-qrcode-tlv-split.png" alt="EMV QR Code TLV 拆分"></p>
+<p>各 ID 对应的 value 如下：</p>
+<p><img src="images/05-emv-tag-value-table.png" alt="EMV QR Code ID 与 value 对照"></p>
+<p>主要字段含义如下。图中红旗代表常见必填项，但实际必填、条件必填和可选关系应以 EMVCo 规范为准。</p>
+<p><img src="images/06-emv-mpm-tags.png" alt="EMV MPM 主要字段说明"></p>
+<p>几个核心字段说明：</p>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>名称</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>00</code></td>
+<td>Payload Format Indicator</td>
+<td>固定为 <code>01</code>。</td>
+</tr>
+<tr>
+<td><code>01</code></td>
+<td>Point of Initiation Method</td>
+<td><code>11</code> 表示静态码，<code>12</code> 表示动态码。</td>
+</tr>
+<tr>
+<td><code>02</code>-<code>51</code></td>
+<td>Merchant Account Information</td>
+<td>商户账户信息。<code>02</code>-<code>25</code> 通常为支付组织保留区，<code>26</code>-<code>51</code> 可按模板扩展；模板内的 <code>00</code> 一般是 Globally Unique Identifier。</td>
+</tr>
+<tr>
+<td><code>52</code></td>
+<td>Merchant Category Code</td>
+<td>商户类别码，通常按 ISO 18245 MCC。</td>
+</tr>
+<tr>
+<td><code>53</code></td>
+<td>Transaction Currency</td>
+<td>交易币种，使用 ISO 4217 数字币种代码，例如人民币为 <code>156</code>。</td>
+</tr>
+<tr>
+<td><code>54</code></td>
+<td>Transaction Amount</td>
+<td>交易金额。静态码可以不带金额，由用户输入；动态码通常会带金额。</td>
+</tr>
+<tr>
+<td><code>58</code></td>
+<td>Country Code</td>
+<td>商户国家/地区，使用 ISO 3166-1 alpha-2，例如中国为 <code>CN</code>。</td>
+</tr>
+<tr>
+<td><code>59</code></td>
+<td>Merchant Name</td>
+<td>商户名称。</td>
+</tr>
+<tr>
+<td><code>60</code></td>
+<td>Merchant City</td>
+<td>商户城市。</td>
+</tr>
+<tr>
+<td><code>62</code></td>
+<td>Additional Data Field Template</td>
+<td>附加数据模板，可放订单号、账单号、终端号等子字段。</td>
+</tr>
+<tr>
+<td><code>64</code></td>
+<td>Merchant Information Language Template</td>
+<td>多语言商户信息模板，例如中文商户名和城市。</td>
+</tr>
+<tr>
+<td><code>63</code></td>
+<td>CRC</td>
+<td>CRC-16/CCITT-FALSE 校验值。</td>
+</tr>
+<tr>
+<td><code>80</code>-<code>99</code></td>
+<td>Unreserved Templates</td>
+<td>未保留模板，供支付方案或实现方扩展。</td>
+</tr>
+</tbody></table>
+<p>对上面的示例，可以解释为：</p>
+<ul>
+<li>这是一个 EMV MPM 商户收款码。</li>
+<li><code>01=12</code>，表示动态码。</li>
+<li>包含两个 Merchant Account Information 模板：<code>29</code> 和 <code>31</code>。它们不是”清算机构 ID”本身，而是商户账户信息数据对象；模板里的 <code>00</code> 子字段用于标识对应支付网络或方案，其他子字段由该方案定义。</li>
+<li>商户 MCC 为 <code>4111</code>，表示本地/市郊通勤客运。</li>
+<li>商户所在国家为 <code>CN</code>，城市为 <code>BEIJING</code>。</li>
+<li>英文商户名称为 <code>BEST TRANSPORT</code>。</li>
+<li><code>64</code> 模板里包含中文商户名 <code>最佳运输</code> 和城市 <code>北京</code>。</li>
+<li>交易币种为 <code>156</code>，即人民币。</li>
+<li>交易金额为 <code>23.72</code>。原文曾写成 <code>523.72</code>，与示例字段 <code>540523.72</code> 的实际解析不符；<code>54</code> 后面的 <code>05</code> 表示长度为 5，值是 <code>23.72</code>。</li>
+<li><code>62</code> 是附加数据模板，包含参考号、客户标签、终端标识等扩展字段。</li>
+<li><code>91</code> 属于未保留模板，具体含义由相关支付方案定义。</li>
+</ul>
+<p>可以借助开源项目 <a target="_blank" rel="noopener" href="https://github.com/dongri/emv-qrcode">dongri/emv-qrcode</a> 模拟二维码解析和生成：</p>
+<p><img src="images/07-emv-qrcode-parser-1.png" alt="emv-qrcode 解析示例 1"></p>
+<p><img src="images/08-emv-qrcode-parser-2.png" alt="emv-qrcode 解析示例 2"></p>
+<h3 id="EMV-QR-Code-校验码"><a href="#EMV-QR-Code-校验码" class="headerlink" title="EMV QR Code 校验码"></a>EMV QR Code 校验码</h3><p><code>63</code> 代表 CRC 校验值。它不是数字签名，也不能证明二维码”没有被恶意篡改”；它只能用于发现 payload 与 CRC 不匹配的情况。攻击者如果能修改 payload，也可以重新计算 CRC。因此，支付 App 不能把 CRC 当作防伪机制，商户身份、收款账户、金额等关键数据仍应通过支付网络、收单方或服务端可信记录校验。</p>
+<p>EMV MPM 的 CRC 计算规则可以概括为：</p>
+<ul>
+<li>算法：CRC-16/CCITT-FALSE。</li>
+<li>初始值：<code>0xFFFF</code>。</li>
+<li>多项式：<code>0x1021</code>。</li>
+<li>计算范围：从 payload 开头一直到 <code>6304</code>，不包含最终 4 位 CRC 值。</li>
+<li>输出格式：4 位大写十六进制字符，不足 4 位左侧补 <code>0</code>。</li>
+</ul>
+<p>CRC 校验码的计算可参考上述开源项目的 <code>formatCrc</code> 函数：</p>
+<p><img src="images/09-crc-formatcrc-source.png" alt="formatCrc 函数源码"></p>
+<p>为了直接运行 <code>formatCrc</code>，可以使用一个更小的 <code>main.go</code>。原文示例中引入了 <code>cpm</code>、<code>mpm</code> 但未使用，单独运行会触发 Go 的 unused import 编译错误；下面是可独立运行的版本：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> main</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> (</span><br><span class="line">	<span class="string">&quot;fmt&quot;</span></span><br><span class="line">	<span class="string">&quot;log&quot;</span></span><br><span class="line">	<span class="string">&quot;strconv&quot;</span></span><br><span class="line">	<span class="string">&quot;strings&quot;</span></span><br><span class="line">	<span class="string">&quot;unicode/utf8&quot;</span></span><br><span class="line"></span><br><span class="line">	<span class="string">&quot;github.com/dongri/emv-qrcode/crc16&quot;</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">formatCrc</span><span class="params">(value <span class="type">string</span>)</span></span> <span class="type">string</span> &#123;</span><br><span class="line">	table := crc16.MakeTable(crc16.CRC16_CCITT_FALSE)</span><br><span class="line">	crcValue := crc16.Checksum([]<span class="type">byte</span>(value+<span class="string">&quot;63&quot;</span>+<span class="string">&quot;04&quot;</span>), table)</span><br><span class="line">	crcValueString := strconv.FormatUint(<span class="type">uint64</span>(crcValue), <span class="number">16</span>)</span><br><span class="line">	s := <span class="string">&quot;0000&quot;</span> + strings.ToUpper(crcValueString)</span><br><span class="line">	<span class="keyword">return</span> format(<span class="string">&quot;63&quot;</span>, s[<span class="built_in">len</span>(s)<span class="number">-4</span>:])</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">format</span><span class="params">(id <span class="type">string</span>, value <span class="type">string</span>)</span></span> <span class="type">string</span> &#123;</span><br><span class="line">	valueLength := utf8.RuneCountInString(value)</span><br><span class="line">	<span class="keyword">return</span> fmt.Sprintf(<span class="string">&quot;%s%02d%s&quot;</span>, id, valueLength, value)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">	value := <span class="string">&quot;00020101021226570009SG.PAYNOW010100211+6581001803030100408202406190503sec520400005303702540512.005802SG5902SE6009Singapore62070103sec630493EC&quot;</span></span><br><span class="line">	payloadWithoutCrc := value[:<span class="built_in">len</span>(value)<span class="number">-8</span>]</span><br><span class="line">	log.Println(formatCrc(payloadWithoutCrc))</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><img src="images/10-crc-formatcrc-main.png" alt="运行 formatCrc 示例"></p>
+<p>以如下二维码内容为例：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">00020101021226570009SG.PAYNOW010100211+6581001803030100408202406190503sec520400005303702540512.005802SG5902SE6009Singapore62070103sec630493EC</span><br></pre></td></tr></table></figure>
+
+<p>当修改其中的手机号 <code>81001803</code> 为 <code>81001804</code> 后，需要重新计算 CRC，结果为 <code>FBE9</code>：</p>
+<p><img src="images/11-crc-recalculation.png" alt="CRC 重新计算结果"></p>
+<p>修改后的二维码内容应为：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">00020101021226570009SG.PAYNOW010100211+6581001804030100408202406190503sec520400005303702540512.005802SG5902SE6009Singapore62070103sec6304FBE9</span><br></pre></td></tr></table></figure>
+
+<p>也可参考如下代码计算 CRC：</p>
+<p><a target="_blank" rel="noopener" href="https://www.yuque.com/attachments/yuque/0/2024/txt/22449800/1718810954786-876623b1-052c-4d86-9c87-0a2abde7f28f.txt">emv-qrcode-pj.zip.txt</a></p>
+<p><img src="images/12-crc-local-code.png" alt="本地 CRC 计算代码示例"></p>
+<h2 id="SGQR"><a href="#SGQR" class="headerlink" title="SGQR"></a>SGQR</h2><p>Singapore Quick Response Code（SGQR）是新加坡统一的支付二维码标签标准。它不是一个单独的钱包 App，也不是一个新的支付方案；它把多个电子支付方案整合到同一个 SGQR 标签中，消费者通过标签上的支付方式标识判断自己的钱包是否可用。</p>
+<p>SGQR 基于 EMVCo 的 Merchant-Presented Mode 规范，并针对新加坡市场做了本地化约束，例如新加坡相关字段的位置、EMV 字段使用指导，以及多个支付方案在 Merchant Account Information 中的排列和编码效率。</p>
+<p><img src="images/13-sgqr-label.png" alt="SGQR 标签示例"></p>
+<p>需要修正原文中一个容易误解的说法：”一个 SGQR 可同时被支付宝、微信等支付方式扫描解析”并不表示任意支付宝或微信钱包都能扫任意 SGQR 成功付款。实际能否支付取决于：</p>
+<ul>
+<li>该商户的 SGQR 标签中是否包含对应支付方案；</li>
+<li>用户钱包是否支持该方案和当地跨境规则；</li>
+<li>收单方、支付方案和钱包之间是否完成商业和技术接入。</li>
+</ul>
+<p>SGQR 官方介绍：</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://www.mas.gov.sg/development/e-payments/sgqr">MAS SGQR</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.imda.gov.sg/-/media/imda/files/about/media-releases/2018/annex-a--singapore-quick-response-code-sgqr.pdf">IMDA SGQR fact sheet</a></li>
+</ul>
+<h3 id="SGQR-商户名篡改风险"><a href="#SGQR-商户名篡改风险" class="headerlink" title="SGQR 商户名篡改风险"></a>SGQR 商户名篡改风险</h3><p>原文提到的 SGQR 漏洞，本质上不是 QR Code 或 CRC 算法漏洞，而是支付 App 的信任边界问题。</p>
+<p>如果钱包 App 在付款确认页直接展示二维码 payload 里的 <code>59</code>（Merchant Name），而不是从支付方案、收单方或商户注册记录中校验并展示商户名称，攻击者就可能篡改 <code>59</code> 字段、重新计算 CRC，并生成一个外观看似合法的 SGQR，让用户以为自己正在向真实商户付款。</p>
+<p><img src="images/14-sgqr-vulnerability-survey.png" alt="SGQR vulnerability survey"></p>
+<p>防护要点：</p>
+<ul>
+<li>App 可以解析并校验 CRC，但不能信任 CRC 作为防篡改证明。</li>
+<li>商户名称、收款账户、商户 ID、金额等关键展示信息应来自可信后端或支付网络返回结果。</li>
+<li>对静态商户码，应校验码中支付方案账号与注册商户记录的一致性。</li>
+<li>对动态码，应将金额、订单号、商户标识与服务端订单状态绑定，避免只信任二维码本地字段。</li>
+</ul>
+<h2 id="QRIS"><a href="#QRIS" class="headerlink" title="QRIS"></a>QRIS</h2><p>QRIS 的官方全称是 Quick Response Code Indonesia Standard，常读作 “Kris”。它是 Bank Indonesia 与支付系统行业共同制定的印尼国家级二维码支付标准，用于统一不同支付服务提供方的 QR 支付受理方式。Bank Indonesia 官方页面明确说明，所有提供 QR Code 支付的 Payment Service Provider（PSP）都必须使用 QRIS。</p>
+<p>原文中”Quick Response Indonesian Standard”的写法不准确，应改为 <strong>Quick Response Code Indonesia Standard</strong>。</p>
+<p>QRIS 的关键点：</p>
+<ul>
+<li>支持同一个 QR Payment Code 被不同支付工具和不同 PSP App 使用。</li>
+<li>支持 MPM 和 CPM 两种模式。</li>
+<li>MPM 又包括静态 MPM 和动态 MPM：静态码通常由消费者输入金额；动态码通常由商户设备或系统生成，并包含金额或订单信息。</li>
+<li>资金来源可以是银行账户，也可以是 debit card、credit facility 或服务器型电子货币等，具体以印尼监管和 PSP 支持范围为准。</li>
+<li>支持 QRIS Cross-Border，用于与泰国、马来西亚、新加坡等伙伴国家或地区的跨境 QR 支付互联。</li>
+</ul>
+<p>官方介绍：</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://www.bi.go.id/en/fungsi-utama/sistem-pembayaran/ritel/kanal-layanan/qris/default.aspx">Bank Indonesia: Quick Response Code Indonesia Standard (QRIS)</a></li>
+</ul>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
+<li>DENSO WAVE QR Code 标准化：<a target="_blank" rel="noopener" href="https://www.qrcode.com/zh/about/standards.html">https://www.qrcode.com/zh/about/standards.html</a></li>
+<li>DENSO WAVE QR Code 类型：<a target="_blank" rel="noopener" href="https://www.qrcode.com/en/codes/">https://www.qrcode.com/en/codes/</a></li>
+<li>ISO/IEC 18004:2024：<a target="_blank" rel="noopener" href="https://www.iso.org/standard/83389.html">https://www.iso.org/standard/83389.html</a></li>
+<li>EMVCo Overview：<a target="_blank" rel="noopener" href="https://www.emvco.com/about-us/">https://www.emvco.com/about-us/</a></li>
+<li>EMVCo QR Codes：<a target="_blank" rel="noopener" href="https://www.emvco.com/emv-technologies/qr-codes/">https://www.emvco.com/emv-technologies/qr-codes/</a></li>
+<li>EMV QR Code CPM 模式规范：<a target="_blank" rel="noopener" href="https://www.emvco.com/specifications/?post_id=12641">https://www.emvco.com/specifications/?post_id=12641</a></li>
+<li>EMV QR Code MPM 模式规范：<a target="_blank" rel="noopener" href="https://www.emvco.com/specifications/?post_id=12643">https://www.emvco.com/specifications/?post_id=12643</a></li>
+<li>EMV QR Code 开源代码解析：<a target="_blank" rel="noopener" href="https://github.com/dongri/emv-qrcode">https://github.com/dongri/emv-qrcode</a></li>
+<li>SGQR Fact Sheet：<a target="_blank" rel="noopener" href="https://www.imda.gov.sg/-/media/imda/files/about/media-releases/2018/annex-a--singapore-quick-response-code-sgqr.pdf">https://www.imda.gov.sg/-/media/imda/files/about/media-releases/2018/annex-a–singapore-quick-response-code-sgqr.pdf</a></li>
+<li>Bank Indonesia QRIS 官方介绍：<a target="_blank" rel="noopener" href="https://www.bi.go.id/en/fungsi-utama/sistem-pembayaran/ritel/kanal-layanan/qris/default.aspx">https://www.bi.go.id/en/fungsi-utama/sistem-pembayaran/ritel/kanal-layanan/qris/default.aspx</a></li>
+<li>EMV QR Code 知识科普：<a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/379152918">https://zhuanlan.zhihu.com/p/379152918</a></li>
+<li>EMV MPM 字段参考：<a target="_blank" rel="noopener" href="https://homels.github.io/2019/04/24/emv-merchant/">https://homels.github.io/2019/04/24/emv-merchant/</a></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/QR-Code/" rel="tag"># QR Code</a>
+              <a href="/tags/EMV-QR-Code/" rel="tag"># EMV QR Code</a>
+              <a href="/tags/SGQR/" rel="tag"># SGQR</a>
+              <a href="/tags/QRIS/" rel="tag"># QRIS</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2024/02/01/FIDO%E8%BA%AB%E4%BB%BD%E8%AE%A4%E8%AF%81%E6%96%B9%E5%BC%8F/" rel="prev" title="FIDO身份认证方式">
+      <i class="fa fa-chevron-left"></i> FIDO身份认证方式
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2025/02/01/NodeJS-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/" rel="next" title="NodeJS 反序列化">
+      NodeJS 反序列化 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%94%AF%E4%BB%98%E4%BA%8C%E7%BB%B4%E7%A0%81%E6%A0%87%E5%87%86%EF%BC%9AQR-Code%E3%80%81EMV-QR-Code%E3%80%81SGQR-%E4%B8%8E-QRIS"><span class="nav-number">1.</span> <span class="nav-text">支付二维码标准：QR Code、EMV QR Code、SGQR 与 QRIS</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%8C%E7%BB%B4%E7%A0%81%E4%B8%8E-QR-Code"><span class="nav-number">1.1.</span> <span class="nav-text">二维码与 QR Code</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#EMV-QR-Code"><span class="nav-number">1.2.</span> <span class="nav-text">EMV QR Code</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%83%8C%E6%99%AF"><span class="nav-number">1.2.1.</span> <span class="nav-text">背景</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#EMV-QR-Code-%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84"><span class="nav-number">1.2.2.</span> <span class="nav-text">EMV QR Code 数据结构</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#EMV-QR-Code-%E6%A0%A1%E9%AA%8C%E7%A0%81"><span class="nav-number">1.2.3.</span> <span class="nav-text">EMV QR Code 校验码</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#SGQR"><span class="nav-number">1.3.</span> <span class="nav-text">SGQR</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#SGQR-%E5%95%86%E6%88%B7%E5%90%8D%E7%AF%A1%E6%94%B9%E9%A3%8E%E9%99%A9"><span class="nav-number">1.3.1.</span> <span class="nav-text">SGQR 商户名篡改风险</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#QRIS"><span class="nav-number">1.4.</span> <span class="nav-text">QRIS</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%82%E8%80%83"><span class="nav-number">1.5.</span> <span class="nav-text">参考</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="ttestoo"
+      src="/images/avator.jpg">
+  <p class="site-author-name" itemprop="name">ttestoo</p>
+  <div class="site-description" itemprop="description">不争</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">13</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+        <span class="site-state-item-count">24</span>
+        <span class="site-state-item-name">分类</span>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">31</span>
+        <span class="site-state-item-name">标签</span>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/ttestoo" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;ttestoo" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:test@qq.com" title="E-Mail → mailto:test@qq.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+  <div class="links-of-blogroll motion-element">
+    <div class="links-of-blogroll-title">
+      <i class="fa fa-fw fa-link"></i>
+      Links
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="https://ttestoo.github.io/" title="https:&#x2F;&#x2F;ttestoo.github.io&#x2F;">Title</a>
+        </li>
+    </ul>
+  </div>
+
+      </div>
+        <div class="back-to-top motion-element">
+          <i class="fa fa-arrow-up"></i>
+          <span>0%</span>
+        </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2021 – 
+  <span itemprop="copyrightYear">2026</span>
+  <span class="with-love">
+    <i class="fa fa-fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ttestoo</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+      <span class="post-meta-item-text">站点总字数：</span>
+    <span title="站点总字数">118k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+      <span class="post-meta-item-text">站点阅读时长 &asymp;</span>
+    <span title="站点阅读时长">1:47</span>
+</div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

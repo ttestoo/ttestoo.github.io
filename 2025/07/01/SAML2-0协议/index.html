@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+  <meta name="baidu-site-verification" content="code-IgVCkP0vYS">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"ttestoo.github.io","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":"mac"},"back2top":{"enable":true,"sidebar":true,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="SAML 2.0 协议介绍SAML（Security Assertion Markup Language，安全断言标记语言）是 OASIS 制定的一套基于 XML 的联合身份标准，用于在不同安全域之间交换认证、属性和授权相关信息。最常见的使用场景是企业单点登录（SSO）：用户访问服务提供方后，被引导到身份提供方完成认证，服务提供方再根据身份提供方签发的断言为用户建立本地会话。 SAML 2.0 中">
+<meta property="og:type" content="article">
+<meta property="og:title" content="SAML2.0协议">
+<meta property="og:url" content="https://ttestoo.github.io/2025/07/01/SAML2-0%E5%8D%8F%E8%AE%AE/index.html">
+<meta property="og:site_name" content="ttestoo&#39;s blog">
+<meta property="og:description" content="SAML 2.0 协议介绍SAML（Security Assertion Markup Language，安全断言标记语言）是 OASIS 制定的一套基于 XML 的联合身份标准，用于在不同安全域之间交换认证、属性和授权相关信息。最常见的使用场景是企业单点登录（SSO）：用户访问服务提供方后，被引导到身份提供方完成认证，服务提供方再根据身份提供方签发的断言为用户建立本地会话。 SAML 2.0 中">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://ttestoo.github.io/2025/07/01/SAML2-0%E5%8D%8F%E8%AE%AE/assets/saml/saml-transaction-steps.png">
+<meta property="og:image" content="https://ttestoo.github.io/2025/07/01/SAML2-0%E5%8D%8F%E8%AE%AE/assets/saml/saml-login-flow.png">
+<meta property="article:published_time" content="2025-06-30T16:00:00.000Z">
+<meta property="article:modified_time" content="2026-05-15T16:00:00.000Z">
+<meta property="article:author" content="ttestoo">
+<meta property="article:tag" content="SAML">
+<meta property="article:tag" content="SAML 2.0">
+<meta property="article:tag" content="SSO">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://ttestoo.github.io/2025/07/01/SAML2-0%E5%8D%8F%E8%AE%AE/assets/saml/saml-transaction-steps.png">
+
+<link rel="canonical" href="https://ttestoo.github.io/2025/07/01/SAML2-0%E5%8D%8F%E8%AE%AE/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>SAML2.0协议 | ttestoo's blog</title>
+  
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?2509b78f4891a940e38e443a10f826fa";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="ttestoo's blog" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">ttestoo's blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">领悟。</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档<span class="badge">13</span></a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签<span class="badge">31</span></a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类<span class="badge">24</span></a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://ttestoo.github.io/2025/07/01/SAML2-0%E5%8D%8F%E8%AE%AE/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avator.jpg">
+      <meta itemprop="name" content="ttestoo">
+      <meta itemprop="description" content="不争">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ttestoo's blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          SAML2.0协议
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2025-07-01 00:00:00" itemprop="dateCreated datePublished" datetime="2025-07-01T00:00:00+08:00">2025-07-01</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2026-05-16 00:00:00" itemprop="dateModified" datetime="2026-05-16T00:00:00+08:00">2026-05-16</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E8%BA%AB%E4%BB%BD%E8%AE%A4%E8%AF%81/" itemprop="url" rel="index"><span itemprop="name">身份认证</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E8%BA%AB%E4%BB%BD%E8%AE%A4%E8%AF%81/SAML/" itemprop="url" rel="index"><span itemprop="name">SAML</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>9.3k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>8 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="SAML-2-0-协议介绍"><a href="#SAML-2-0-协议介绍" class="headerlink" title="SAML 2.0 协议介绍"></a>SAML 2.0 协议介绍</h1><p>SAML（Security Assertion Markup Language，安全断言标记语言）是 OASIS 制定的一套基于 XML 的联合身份标准，用于在不同安全域之间交换认证、属性和授权相关信息。最常见的使用场景是企业单点登录（SSO）：用户访问服务提供方后，被引导到身份提供方完成认证，服务提供方再根据身份提供方签发的断言为用户建立本地会话。</p>
+<p>SAML 2.0 中最常见的参与方包括：</p>
+<ul>
+<li>Service Provider（SP，服务提供方）：向用户提供业务服务的系统，例如邮件、OA、云控制台等。SP 依赖 IdP 的认证结果，不直接保存或验证用户密码。</li>
+<li>Identity Provider（IdP，身份提供方）：负责认证用户并签发 SAML Response/Assertion 的系统，例如企业统一身份平台。</li>
+<li>User Agent（用户代理）：通常是浏览器，负责在 SP 和 IdP 之间跳转并传递 SAML 消息。</li>
+</ul>
+<p>需要注意的是，SAML 2.0 的主规范来自 OASIS，而不是 RFC 7522。RFC 7522 描述的是在 OAuth 2.0 中使用 SAML 2.0 Bearer Assertion 作为授权授予或客户端认证方式，属于 SAML 在 OAuth 场景下的扩展用法。</p>
+<p>参考规范：</p>
+<ul>
+<li>OASIS SAML 2.0 技术概览：<a target="_blank" rel="noopener" href="https://docs.oasis-open.org/security/saml/Post2.0/sstc-saml-tech-overview-2.0-cd-02.html">https://docs.oasis-open.org/security/saml/Post2.0/sstc-saml-tech-overview-2.0-cd-02.html</a></li>
+<li>Assertions and Protocols：<a target="_blank" rel="noopener" href="https://docs.oasis-open.org/security/saml/v2.0/saml-core-2.0-os.pdf">https://docs.oasis-open.org/security/saml/v2.0/saml-core-2.0-os.pdf</a></li>
+<li>Bindings：<a target="_blank" rel="noopener" href="https://docs.oasis-open.org/security/saml/v2.0/saml-bindings-2.0-os.pdf">https://docs.oasis-open.org/security/saml/v2.0/saml-bindings-2.0-os.pdf</a></li>
+<li>Profiles：<a target="_blank" rel="noopener" href="https://docs.oasis-open.org/security/saml/v2.0/saml-profiles-2.0-os.pdf">https://docs.oasis-open.org/security/saml/v2.0/saml-profiles-2.0-os.pdf</a></li>
+<li>RFC 7522：<a target="_blank" rel="noopener" href="https://www.rfc-editor.org/rfc/rfc7522">https://www.rfc-editor.org/rfc/rfc7522</a></li>
+</ul>
+<h1 id="SAML-相关定义"><a href="#SAML-相关定义" class="headerlink" title="SAML 相关定义"></a>SAML 相关定义</h1><ul>
+<li>Assertion（断言）：IdP 对某个 Subject 做出的声明。常见内容包括认证声明（AuthnStatement）、属性声明（AttributeStatement）和授权决策声明（AuthzDecisionStatement）。在 SSO 场景下，SP 最关心的是用户是谁、认证何时发生、断言是否仍在有效期内、断言是否只发给当前 SP 使用。</li>
+<li>Protocol（协议）：定义 SAML 请求和响应消息的结构，例如 <code>AuthnRequest</code>、<code>Response</code>、<code>LogoutRequest</code>、<code>ArtifactResolve</code> 等。</li>
+<li>Binding（绑定）：定义 SAML 消息如何承载在底层传输协议上，例如 HTTP Redirect、HTTP POST、HTTP Artifact、SOAP 等。</li>
+<li>Profile（配置档/使用模式）：定义在具体业务场景中如何组合 Assertion、Protocol 和 Binding。Web Browser SSO Profile 是最常见的 SAML 登录模式，除此之外还有 Single Logout、ECP 等。</li>
+<li>Metadata（元数据）：SAML 实体的配置描述，通常包含 <code>entityID</code>、SSO/SLO/ACS 端点、支持的 Binding、签名和加密证书、NameID 格式、组织和联系人信息等。生产环境中，SP 与 IdP 应通过可信渠道交换并维护元数据。</li>
+</ul>
+<h2 id="Assertion-示例"><a href="#Assertion-示例" class="headerlink" title="Assertion 示例"></a>Assertion 示例</h2><p>下面是一个简化后的断言示例。真实生产报文通常还会包含 XML Signature，签名对象可以是 <code>Response</code>，也可以是 <code>Assertion</code>，具体由双方元数据和配置约定。</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">saml:Assertion</span></span></span><br><span class="line"><span class="tag">    <span class="attr">xmlns:saml</span>=<span class="string">&quot;urn:oasis:names:tc:SAML:2.0:assertion&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">xmlns:xsi</span>=<span class="string">&quot;http://www.w3.org/2001/XMLSchema-instance&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">xmlns:xs</span>=<span class="string">&quot;http://www.w3.org/2001/XMLSchema&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">ID</span>=<span class="string">&quot;_assertion-123&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">Version</span>=<span class="string">&quot;2.0&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">IssueInstant</span>=<span class="string">&quot;2026-05-16T08:00:00Z&quot;</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">saml:Issuer</span>&gt;</span>https://idp.example.com/metadata<span class="tag">&lt;/<span class="name">saml:Issuer</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">saml:Subject</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">saml:NameID</span> <span class="attr">Format</span>=<span class="string">&quot;urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress&quot;</span>&gt;</span>alice@example.com<span class="tag">&lt;/<span class="name">saml:NameID</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">saml:SubjectConfirmation</span> <span class="attr">Method</span>=<span class="string">&quot;urn:oasis:names:tc:SAML:2.0:cm:bearer&quot;</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">saml:SubjectConfirmationData</span></span></span><br><span class="line"><span class="tag">          <span class="attr">NotOnOrAfter</span>=<span class="string">&quot;2026-05-16T08:05:00Z&quot;</span></span></span><br><span class="line"><span class="tag">          <span class="attr">Recipient</span>=<span class="string">&quot;https://sp.example.com/saml/acs&quot;</span></span></span><br><span class="line"><span class="tag">          <span class="attr">InResponseTo</span>=<span class="string">&quot;_authn-request-123&quot;</span>/&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">saml:SubjectConfirmation</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">saml:Subject</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">saml:Conditions</span> <span class="attr">NotBefore</span>=<span class="string">&quot;2026-05-16T07:59:30Z&quot;</span> <span class="attr">NotOnOrAfter</span>=<span class="string">&quot;2026-05-16T08:05:00Z&quot;</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">saml:AudienceRestriction</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">saml:Audience</span>&gt;</span>https://sp.example.com/metadata<span class="tag">&lt;/<span class="name">saml:Audience</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">saml:AudienceRestriction</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">saml:Conditions</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">saml:AuthnStatement</span></span></span><br><span class="line"><span class="tag">      <span class="attr">AuthnInstant</span>=<span class="string">&quot;2026-05-16T08:00:00Z&quot;</span></span></span><br><span class="line"><span class="tag">      <span class="attr">SessionIndex</span>=<span class="string">&quot;_session-123&quot;</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">saml:AuthnContext</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">saml:AuthnContextClassRef</span>&gt;</span>urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport<span class="tag">&lt;/<span class="name">saml:AuthnContextClassRef</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">saml:AuthnContext</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">saml:AuthnStatement</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">saml:AttributeStatement</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">saml:Attribute</span> <span class="attr">Name</span>=<span class="string">&quot;uid&quot;</span> <span class="attr">NameFormat</span>=<span class="string">&quot;urn:oasis:names:tc:SAML:2.0:attrname-format:basic&quot;</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">saml:AttributeValue</span> <span class="attr">xsi:type</span>=<span class="string">&quot;xs:string&quot;</span>&gt;</span>alice<span class="tag">&lt;/<span class="name">saml:AttributeValue</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">saml:Attribute</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">saml:Attribute</span> <span class="attr">Name</span>=<span class="string">&quot;mail&quot;</span> <span class="attr">NameFormat</span>=<span class="string">&quot;urn:oasis:names:tc:SAML:2.0:attrname-format:basic&quot;</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">saml:AttributeValue</span> <span class="attr">xsi:type</span>=<span class="string">&quot;xs:string&quot;</span>&gt;</span>alice@example.com<span class="tag">&lt;/<span class="name">saml:AttributeValue</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">saml:Attribute</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">saml:AttributeStatement</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">saml:Assertion</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="AuthnRequest-示例"><a href="#AuthnRequest-示例" class="headerlink" title="AuthnRequest 示例"></a>AuthnRequest 示例</h2><p><code>AuthnRequest</code> 由 SP 生成并发送给 IdP，用来请求 IdP 对用户进行认证。下面示例中的 <code>ProtocolBinding</code> 表示 SP 希望 IdP 使用哪种 Binding 把 <code>Response</code> 返回到 ACS，而不是当前 <code>AuthnRequest</code> 自己使用的传输方式。</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">samlp:AuthnRequest</span></span></span><br><span class="line"><span class="tag">    <span class="attr">xmlns:samlp</span>=<span class="string">&quot;urn:oasis:names:tc:SAML:2.0:protocol&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">xmlns:saml</span>=<span class="string">&quot;urn:oasis:names:tc:SAML:2.0:assertion&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">ID</span>=<span class="string">&quot;_authn-request-123&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">Version</span>=<span class="string">&quot;2.0&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">IssueInstant</span>=<span class="string">&quot;2026-05-16T08:00:00Z&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">Destination</span>=<span class="string">&quot;https://idp.example.com/sso&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">AssertionConsumerServiceURL</span>=<span class="string">&quot;https://sp.example.com/saml/acs&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">ProtocolBinding</span>=<span class="string">&quot;urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST&quot;</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">saml:Issuer</span>&gt;</span>https://sp.example.com/metadata<span class="tag">&lt;/<span class="name">saml:Issuer</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">samlp:NameIDPolicy</span></span></span><br><span class="line"><span class="tag">      <span class="attr">AllowCreate</span>=<span class="string">&quot;true&quot;</span></span></span><br><span class="line"><span class="tag">      <span class="attr">Format</span>=<span class="string">&quot;urn:oasis:names:tc:SAML:2.0:nameid-format:transient&quot;</span>/&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">samlp:RequestedAuthnContext</span> <span class="attr">Comparison</span>=<span class="string">&quot;minimum&quot;</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">saml:AuthnContextClassRef</span>&gt;</span>urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport<span class="tag">&lt;/<span class="name">saml:AuthnContextClassRef</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">samlp:RequestedAuthnContext</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">samlp:AuthnRequest</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<h1 id="常见-Binding"><a href="#常见-Binding" class="headerlink" title="常见 Binding"></a>常见 Binding</h1><table>
+<thead>
+<tr>
+<th>Binding</th>
+<th>常见承载方式</th>
+<th>典型用途</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>HTTP Redirect</td>
+<td>URL 查询参数 <code>SAMLRequest</code> 或 <code>SAMLResponse</code></td>
+<td>SP 发起登录时发送 <code>AuthnRequest</code></td>
+<td>消息通常先 DEFLATE 压缩，再 Base64 编码，最后 URL 编码。由于 URL 长度限制，适合较短请求。</td>
+</tr>
+<tr>
+<td>HTTP POST</td>
+<td>HTML 表单字段 <code>SAMLRequest</code> 或 <code>SAMLResponse</code></td>
+<td>IdP 向 SP 的 ACS 返回 <code>Response</code></td>
+<td>消息通常 Base64 编码后放入表单字段，由浏览器自动提交。POST 返回的 <code>SAMLResponse</code> 一般不再做 DEFLATE 压缩。</td>
+</tr>
+<tr>
+<td>HTTP Artifact</td>
+<td>浏览器只传递一个短 artifact</td>
+<td>对消息体大小或前端暴露有要求的场景</td>
+<td>接收方拿到 artifact 后，通过后端 SOAP 通道解析真实 SAML 消息。</td>
+</tr>
+<tr>
+<td>SOAP</td>
+<td>SOAP over HTTP</td>
+<td>Artifact 解析、属性查询、部分登出流程</td>
+<td>通常用于服务器到服务器的后端通信，不直接依赖浏览器跳转。</td>
+</tr>
+</tbody></table>
+<h1 id="SAML-工作流程"><a href="#SAML-工作流程" class="headerlink" title="SAML 工作流程"></a>SAML 工作流程</h1><p>下面以 SP 发起的 Web Browser SSO 为例说明登录流程。</p>
+<span id="more"></span>
+
+<p><img src="assets/saml/saml-transaction-steps.png" alt="SAML transaction steps"></p>
+<ol>
+<li>用户 Alice 通过浏览器访问 SP，例如 <code>https://mail.google.com/a/my-university.nl</code>。</li>
+<li>SP 发现用户没有本地会话，生成 <code>AuthnRequest</code>，记录请求 ID，并把浏览器重定向到 IdP 的 SSO 地址。使用 HTTP Redirect Binding 时，URL 可能类似：</li>
+</ol>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">https://idp.example.com/sso?SAMLRequest=fVLLTuswEN0j8Q...&amp;RelayState=...</span><br></pre></td></tr></table></figure>
+
+<ol start="3">
+<li>IdP 接收并解析 <code>SAMLRequest</code>，校验请求来源、ACS 地址、签名等信息。如果用户尚未登录 IdP，IdP 会要求用户完成登录；如果用户已经有 IdP 会话，可能直接跳过登录步骤。</li>
+<li>IdP 认证成功后生成 <code>SAMLResponse</code>，其中包含 <code>Status</code> 和一个或多个 <code>Assertion</code>。IdP 会对 <code>Response</code> 或 <code>Assertion</code> 做 XML 签名，必要时还会加密断言。</li>
+<li>IdP 通过浏览器把 <code>SAMLResponse</code> 发送到 SP 的 ACS（Assertion Consumer Service）地址。最常见方式是 HTTP POST：IdP 返回一个自动提交的 HTML 表单，表单字段中包含 <code>SAMLResponse</code> 和可选的 <code>RelayState</code>。</li>
+<li>SP 在 ACS 端点接收 <code>SAMLResponse</code>，完成签名、证书、Issuer、Audience、Destination、Recipient、InResponseTo、有效期和防重放校验。</li>
+<li>校验通过后，SP 从 <code>NameID</code> 和属性中映射本地用户，创建应用会话，用户成功登录业务系统。</li>
+</ol>
+<p>一个简化后的 <code>SAMLResponse</code> 结构如下：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">samlp:Response</span></span></span><br><span class="line"><span class="tag">    <span class="attr">xmlns:samlp</span>=<span class="string">&quot;urn:oasis:names:tc:SAML:2.0:protocol&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">xmlns:saml</span>=<span class="string">&quot;urn:oasis:names:tc:SAML:2.0:assertion&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">ID</span>=<span class="string">&quot;_response-123&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">Version</span>=<span class="string">&quot;2.0&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">IssueInstant</span>=<span class="string">&quot;2026-05-16T08:00:10Z&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">Destination</span>=<span class="string">&quot;https://sp.example.com/saml/acs&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">InResponseTo</span>=<span class="string">&quot;_authn-request-123&quot;</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">saml:Issuer</span>&gt;</span>https://idp.example.com/metadata<span class="tag">&lt;/<span class="name">saml:Issuer</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">samlp:Status</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">samlp:StatusCode</span> <span class="attr">Value</span>=<span class="string">&quot;urn:oasis:names:tc:SAML:2.0:status:Success&quot;</span>/&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">samlp:Status</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">saml:Assertion</span> <span class="attr">ID</span>=<span class="string">&quot;_assertion-123&quot;</span> <span class="attr">Version</span>=<span class="string">&quot;2.0&quot;</span> <span class="attr">IssueInstant</span>=<span class="string">&quot;2026-05-16T08:00:10Z&quot;</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">saml:Issuer</span>&gt;</span>https://idp.example.com/metadata<span class="tag">&lt;/<span class="name">saml:Issuer</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">saml:Subject</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">saml:NameID</span> <span class="attr">Format</span>=<span class="string">&quot;urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress&quot;</span>&gt;</span>alice@example.com<span class="tag">&lt;/<span class="name">saml:NameID</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">saml:SubjectConfirmation</span> <span class="attr">Method</span>=<span class="string">&quot;urn:oasis:names:tc:SAML:2.0:cm:bearer&quot;</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">saml:SubjectConfirmationData</span></span></span><br><span class="line"><span class="tag">            <span class="attr">NotOnOrAfter</span>=<span class="string">&quot;2026-05-16T08:05:10Z&quot;</span></span></span><br><span class="line"><span class="tag">            <span class="attr">Recipient</span>=<span class="string">&quot;https://sp.example.com/saml/acs&quot;</span></span></span><br><span class="line"><span class="tag">            <span class="attr">InResponseTo</span>=<span class="string">&quot;_authn-request-123&quot;</span>/&gt;</span></span><br><span class="line">      <span class="tag">&lt;/<span class="name">saml:SubjectConfirmation</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">saml:Subject</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">saml:Conditions</span> <span class="attr">NotBefore</span>=<span class="string">&quot;2026-05-16T07:59:40Z&quot;</span> <span class="attr">NotOnOrAfter</span>=<span class="string">&quot;2026-05-16T08:05:10Z&quot;</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">saml:AudienceRestriction</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">saml:Audience</span>&gt;</span>https://sp.example.com/metadata<span class="tag">&lt;/<span class="name">saml:Audience</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;/<span class="name">saml:AudienceRestriction</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">saml:Conditions</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">saml:AuthnStatement</span> <span class="attr">AuthnInstant</span>=<span class="string">&quot;2026-05-16T08:00:00Z&quot;</span> <span class="attr">SessionIndex</span>=<span class="string">&quot;_session-123&quot;</span>/&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">saml:Assertion</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">samlp:Response</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>另一张流程图如下：</p>
+<p><img src="assets/saml/saml-login-flow.png" alt="SAML login flow"></p>
+<h2 id="IdP-发起登录"><a href="#IdP-发起登录" class="headerlink" title="IdP 发起登录"></a>IdP 发起登录</h2><p>除了 SP 发起登录，SAML 还支持 IdP 发起登录。此时用户先进入 IdP 门户，再从 IdP 选择进入某个 SP。IdP 直接向 SP 的 ACS 发送 <code>SAMLResponse</code>，通常没有对应的 <code>AuthnRequest</code>，因此 <code>InResponseTo</code> 可能不存在。</p>
+<p>IdP 发起登录实现简单，但 SP 缺少请求关联上下文，安全上需要额外注意：</p>
+<ul>
+<li>只接受元数据中明确配置的 IdP、ACS 和证书。</li>
+<li>严格校验 <code>Audience</code>、<code>Recipient</code>、<code>Destination</code>、有效期和签名。</li>
+<li>对 <code>RelayState</code> 做白名单或本地状态映射，避免被利用成开放重定向。</li>
+<li>使用断言 ID 或 Response ID 做一次性防重放记录。</li>
+</ul>
+<h1 id="安全校验清单"><a href="#安全校验清单" class="headerlink" title="安全校验清单"></a>安全校验清单</h1><p>SP 接收 <code>SAMLResponse</code> 时，至少应校验以下内容：</p>
+<ul>
+<li>签名：校验 <code>Response</code> 或 <code>Assertion</code> 的 XML Signature，签名证书必须来自可信元数据或可信配置，不能直接信任响应里自带的证书。</li>
+<li>Issuer：确认响应来自预期 IdP。</li>
+<li>Destination 和 Recipient：确认响应确实发给当前 ACS。</li>
+<li>Audience：确认断言只允许当前 SP 使用。</li>
+<li>InResponseTo：SP 发起登录时，应匹配之前生成并保存的 <code>AuthnRequest</code> ID；IdP 发起登录时则要按配置显式允许。</li>
+<li>NotBefore 和 NotOnOrAfter：校验断言有效期，并只允许很小的时钟偏移。</li>
+<li>防重放：记录已处理的 Response ID 或 Assertion ID，在有效期内拒绝重复使用。</li>
+<li>NameID 和属性映射：确认使用稳定且唯一的用户标识，不要把可变的显示名当作主键。</li>
+<li>RelayState：只用于恢复本地状态或跳转到受信任地址，不能直接当作任意 URL 跳转。</li>
+<li>XML 安全：禁用外部实体解析，防 XXE；使用成熟 SAML 库处理签名验证，避免 XML Signature Wrapping 等问题。</li>
+</ul>
+<h1 id="OpenSAML"><a href="#OpenSAML" class="headerlink" title="OpenSAML"></a>OpenSAML</h1><p>OpenSAML 是 Shibboleth 项目维护的 SAML Java 工具库，可用于创建、解析、签名、加密、编码和解码 SAML 消息。项目中建议使用 OpenSAML BOM 统一管理版本，并配置 Shibboleth Maven 仓库。</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">repositories</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">repository</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">id</span>&gt;</span>shibboleth-releases<span class="tag">&lt;/<span class="name">id</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">url</span>&gt;</span>https://build.shibboleth.net/maven/releases/<span class="tag">&lt;/<span class="name">url</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">repository</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">repositories</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">dependencyManagement</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">dependencies</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.opensaml<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>opensaml-bom<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">version</span>&gt;</span>5.2.2<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">type</span>&gt;</span>pom<span class="tag">&lt;/<span class="name">type</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">scope</span>&gt;</span>import<span class="tag">&lt;/<span class="name">scope</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">dependencies</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependencyManagement</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>截至 2026-05-16，Shibboleth Maven 仓库中的 <code>opensaml-bom</code> 最新版本为 <code>5.2.2</code>；实际项目应以仓库元数据和兼容性要求为准。</p>
+<p>相关链接：</p>
+<ul>
+<li>Shibboleth Maven 仓库：<a target="_blank" rel="noopener" href="https://build.shibboleth.net/maven/releases/org/opensaml/">https://build.shibboleth.net/maven/releases/org/opensaml/</a></li>
+<li>OpenSAML BOM：<a target="_blank" rel="noopener" href="https://build.shibboleth.net/maven/releases/org/opensaml/opensaml-bom/">https://build.shibboleth.net/maven/releases/org/opensaml/opensaml-bom/</a></li>
+<li>OpenSAML 使用 Demo（依赖可能较旧，仅作学习参考）：<a target="_blank" rel="noopener" href="https://bitbucket.org/srasmusson/webprofile-ref-project-v3/src/master/">https://bitbucket.org/srasmusson/webprofile-ref-project-v3/src/master/</a></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/SAML/" rel="tag"># SAML</a>
+              <a href="/tags/SAML-2-0/" rel="tag"># SAML 2.0</a>
+              <a href="/tags/SSO/" rel="tag"># SSO</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2025/02/01/NodeJS-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/" rel="prev" title="NodeJS 反序列化">
+      <i class="fa fa-chevron-left"></i> NodeJS 反序列化
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#SAML-2-0-%E5%8D%8F%E8%AE%AE%E4%BB%8B%E7%BB%8D"><span class="nav-number">1.</span> <span class="nav-text">SAML 2.0 协议介绍</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#SAML-%E7%9B%B8%E5%85%B3%E5%AE%9A%E4%B9%89"><span class="nav-number">2.</span> <span class="nav-text">SAML 相关定义</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Assertion-%E7%A4%BA%E4%BE%8B"><span class="nav-number">2.1.</span> <span class="nav-text">Assertion 示例</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#AuthnRequest-%E7%A4%BA%E4%BE%8B"><span class="nav-number">2.2.</span> <span class="nav-text">AuthnRequest 示例</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%B8%B8%E8%A7%81-Binding"><span class="nav-number">3.</span> <span class="nav-text">常见 Binding</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#SAML-%E5%B7%A5%E4%BD%9C%E6%B5%81%E7%A8%8B"><span class="nav-number">4.</span> <span class="nav-text">SAML 工作流程</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#IdP-%E5%8F%91%E8%B5%B7%E7%99%BB%E5%BD%95"><span class="nav-number">4.1.</span> <span class="nav-text">IdP 发起登录</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%AE%89%E5%85%A8%E6%A0%A1%E9%AA%8C%E6%B8%85%E5%8D%95"><span class="nav-number">5.</span> <span class="nav-text">安全校验清单</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#OpenSAML"><span class="nav-number">6.</span> <span class="nav-text">OpenSAML</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="ttestoo"
+      src="/images/avator.jpg">
+  <p class="site-author-name" itemprop="name">ttestoo</p>
+  <div class="site-description" itemprop="description">不争</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">13</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+        <span class="site-state-item-count">24</span>
+        <span class="site-state-item-name">分类</span>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">31</span>
+        <span class="site-state-item-name">标签</span>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/ttestoo" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;ttestoo" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:test@qq.com" title="E-Mail → mailto:test@qq.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+  <div class="links-of-blogroll motion-element">
+    <div class="links-of-blogroll-title">
+      <i class="fa fa-fw fa-link"></i>
+      Links
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="https://ttestoo.github.io/" title="https:&#x2F;&#x2F;ttestoo.github.io&#x2F;">Title</a>
+        </li>
+    </ul>
+  </div>
+
+      </div>
+        <div class="back-to-top motion-element">
+          <i class="fa fa-arrow-up"></i>
+          <span>0%</span>
+        </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2021 – 
+  <span itemprop="copyrightYear">2026</span>
+  <span class="with-love">
+    <i class="fa fa-fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ttestoo</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+      <span class="post-meta-item-text">站点总字数：</span>
+    <span title="站点总字数">118k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+      <span class="post-meta-item-text">站点阅读时长 &asymp;</span>
+    <span title="站点阅读时长">1:47</span>
+</div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

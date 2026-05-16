@@ -130,17 +130,17 @@
   </li>
         <li class="menu-item menu-item-archives">
 
-    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档<span class="badge">8</span></a>
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档<span class="badge">13</span></a>
 
   </li>
         <li class="menu-item menu-item-tags">
 
-    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签<span class="badge">15</span></a>
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签<span class="badge">31</span></a>
 
   </li>
         <li class="menu-item menu-item-categories">
 
-    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类<span class="badge">16</span></a>
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类<span class="badge">24</span></a>
 
   </li>
         <li class="menu-item menu-item-about">
@@ -194,6 +194,633 @@
 
           <div class="content index posts-expand">
             
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://ttestoo.github.io/2025/07/01/SAML2-0%E5%8D%8F%E8%AE%AE/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avator.jpg">
+      <meta itemprop="name" content="ttestoo">
+      <meta itemprop="description" content="不争">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ttestoo's blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2025/07/01/SAML2-0%E5%8D%8F%E8%AE%AE/" class="post-title-link" itemprop="url">SAML2.0协议</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2025-07-01 00:00:00" itemprop="dateCreated datePublished" datetime="2025-07-01T00:00:00+08:00">2025-07-01</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2026-05-16 00:00:00" itemprop="dateModified" datetime="2026-05-16T00:00:00+08:00">2026-05-16</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E8%BA%AB%E4%BB%BD%E8%AE%A4%E8%AF%81/" itemprop="url" rel="index"><span itemprop="name">身份认证</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E8%BA%AB%E4%BB%BD%E8%AE%A4%E8%AF%81/SAML/" itemprop="url" rel="index"><span itemprop="name">SAML</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>9.3k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>8 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h1 id="SAML-2-0-协议介绍"><a href="#SAML-2-0-协议介绍" class="headerlink" title="SAML 2.0 协议介绍"></a>SAML 2.0 协议介绍</h1><p>SAML（Security Assertion Markup Language，安全断言标记语言）是 OASIS 制定的一套基于 XML 的联合身份标准，用于在不同安全域之间交换认证、属性和授权相关信息。最常见的使用场景是企业单点登录（SSO）：用户访问服务提供方后，被引导到身份提供方完成认证，服务提供方再根据身份提供方签发的断言为用户建立本地会话。</p>
+<p>SAML 2.0 中最常见的参与方包括：</p>
+<ul>
+<li>Service Provider（SP，服务提供方）：向用户提供业务服务的系统，例如邮件、OA、云控制台等。SP 依赖 IdP 的认证结果，不直接保存或验证用户密码。</li>
+<li>Identity Provider（IdP，身份提供方）：负责认证用户并签发 SAML Response/Assertion 的系统，例如企业统一身份平台。</li>
+<li>User Agent（用户代理）：通常是浏览器，负责在 SP 和 IdP 之间跳转并传递 SAML 消息。</li>
+</ul>
+<p>需要注意的是，SAML 2.0 的主规范来自 OASIS，而不是 RFC 7522。RFC 7522 描述的是在 OAuth 2.0 中使用 SAML 2.0 Bearer Assertion 作为授权授予或客户端认证方式，属于 SAML 在 OAuth 场景下的扩展用法。</p>
+<p>参考规范：</p>
+<ul>
+<li>OASIS SAML 2.0 技术概览：<a target="_blank" rel="noopener" href="https://docs.oasis-open.org/security/saml/Post2.0/sstc-saml-tech-overview-2.0-cd-02.html">https://docs.oasis-open.org/security/saml/Post2.0/sstc-saml-tech-overview-2.0-cd-02.html</a></li>
+<li>Assertions and Protocols：<a target="_blank" rel="noopener" href="https://docs.oasis-open.org/security/saml/v2.0/saml-core-2.0-os.pdf">https://docs.oasis-open.org/security/saml/v2.0/saml-core-2.0-os.pdf</a></li>
+<li>Bindings：<a target="_blank" rel="noopener" href="https://docs.oasis-open.org/security/saml/v2.0/saml-bindings-2.0-os.pdf">https://docs.oasis-open.org/security/saml/v2.0/saml-bindings-2.0-os.pdf</a></li>
+<li>Profiles：<a target="_blank" rel="noopener" href="https://docs.oasis-open.org/security/saml/v2.0/saml-profiles-2.0-os.pdf">https://docs.oasis-open.org/security/saml/v2.0/saml-profiles-2.0-os.pdf</a></li>
+<li>RFC 7522：<a target="_blank" rel="noopener" href="https://www.rfc-editor.org/rfc/rfc7522">https://www.rfc-editor.org/rfc/rfc7522</a></li>
+</ul>
+<h1 id="SAML-相关定义"><a href="#SAML-相关定义" class="headerlink" title="SAML 相关定义"></a>SAML 相关定义</h1><ul>
+<li>Assertion（断言）：IdP 对某个 Subject 做出的声明。常见内容包括认证声明（AuthnStatement）、属性声明（AttributeStatement）和授权决策声明（AuthzDecisionStatement）。在 SSO 场景下，SP 最关心的是用户是谁、认证何时发生、断言是否仍在有效期内、断言是否只发给当前 SP 使用。</li>
+<li>Protocol（协议）：定义 SAML 请求和响应消息的结构，例如 <code>AuthnRequest</code>、<code>Response</code>、<code>LogoutRequest</code>、<code>ArtifactResolve</code> 等。</li>
+<li>Binding（绑定）：定义 SAML 消息如何承载在底层传输协议上，例如 HTTP Redirect、HTTP POST、HTTP Artifact、SOAP 等。</li>
+<li>Profile（配置档/使用模式）：定义在具体业务场景中如何组合 Assertion、Protocol 和 Binding。Web Browser SSO Profile 是最常见的 SAML 登录模式，除此之外还有 Single Logout、ECP 等。</li>
+<li>Metadata（元数据）：SAML 实体的配置描述，通常包含 <code>entityID</code>、SSO/SLO/ACS 端点、支持的 Binding、签名和加密证书、NameID 格式、组织和联系人信息等。生产环境中，SP 与 IdP 应通过可信渠道交换并维护元数据。</li>
+</ul>
+<h2 id="Assertion-示例"><a href="#Assertion-示例" class="headerlink" title="Assertion 示例"></a>Assertion 示例</h2><p>下面是一个简化后的断言示例。真实生产报文通常还会包含 XML Signature，签名对象可以是 <code>Response</code>，也可以是 <code>Assertion</code>，具体由双方元数据和配置约定。</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">saml:Assertion</span></span></span><br><span class="line"><span class="tag">    <span class="attr">xmlns:saml</span>=<span class="string">&quot;urn:oasis:names:tc:SAML:2.0:assertion&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">xmlns:xsi</span>=<span class="string">&quot;http://www.w3.org/2001/XMLSchema-instance&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">xmlns:xs</span>=<span class="string">&quot;http://www.w3.org/2001/XMLSchema&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">ID</span>=<span class="string">&quot;_assertion-123&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">Version</span>=<span class="string">&quot;2.0&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">IssueInstant</span>=<span class="string">&quot;2026-05-16T08:00:00Z&quot;</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">saml:Issuer</span>&gt;</span>https://idp.example.com/metadata<span class="tag">&lt;/<span class="name">saml:Issuer</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">saml:Subject</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">saml:NameID</span> <span class="attr">Format</span>=<span class="string">&quot;urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress&quot;</span>&gt;</span>alice@example.com<span class="tag">&lt;/<span class="name">saml:NameID</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">saml:SubjectConfirmation</span> <span class="attr">Method</span>=<span class="string">&quot;urn:oasis:names:tc:SAML:2.0:cm:bearer&quot;</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">saml:SubjectConfirmationData</span></span></span><br><span class="line"><span class="tag">          <span class="attr">NotOnOrAfter</span>=<span class="string">&quot;2026-05-16T08:05:00Z&quot;</span></span></span><br><span class="line"><span class="tag">          <span class="attr">Recipient</span>=<span class="string">&quot;https://sp.example.com/saml/acs&quot;</span></span></span><br><span class="line"><span class="tag">          <span class="attr">InResponseTo</span>=<span class="string">&quot;_authn-request-123&quot;</span>/&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">saml:SubjectConfirmation</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">saml:Subject</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">saml:Conditions</span> <span class="attr">NotBefore</span>=<span class="string">&quot;2026-05-16T07:59:30Z&quot;</span> <span class="attr">NotOnOrAfter</span>=<span class="string">&quot;2026-05-16T08:05:00Z&quot;</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">saml:AudienceRestriction</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">saml:Audience</span>&gt;</span>https://sp.example.com/metadata<span class="tag">&lt;/<span class="name">saml:Audience</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">saml:AudienceRestriction</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">saml:Conditions</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">saml:AuthnStatement</span></span></span><br><span class="line"><span class="tag">      <span class="attr">AuthnInstant</span>=<span class="string">&quot;2026-05-16T08:00:00Z&quot;</span></span></span><br><span class="line"><span class="tag">      <span class="attr">SessionIndex</span>=<span class="string">&quot;_session-123&quot;</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">saml:AuthnContext</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">saml:AuthnContextClassRef</span>&gt;</span>urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport<span class="tag">&lt;/<span class="name">saml:AuthnContextClassRef</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">saml:AuthnContext</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">saml:AuthnStatement</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">saml:AttributeStatement</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">saml:Attribute</span> <span class="attr">Name</span>=<span class="string">&quot;uid&quot;</span> <span class="attr">NameFormat</span>=<span class="string">&quot;urn:oasis:names:tc:SAML:2.0:attrname-format:basic&quot;</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">saml:AttributeValue</span> <span class="attr">xsi:type</span>=<span class="string">&quot;xs:string&quot;</span>&gt;</span>alice<span class="tag">&lt;/<span class="name">saml:AttributeValue</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">saml:Attribute</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">saml:Attribute</span> <span class="attr">Name</span>=<span class="string">&quot;mail&quot;</span> <span class="attr">NameFormat</span>=<span class="string">&quot;urn:oasis:names:tc:SAML:2.0:attrname-format:basic&quot;</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">saml:AttributeValue</span> <span class="attr">xsi:type</span>=<span class="string">&quot;xs:string&quot;</span>&gt;</span>alice@example.com<span class="tag">&lt;/<span class="name">saml:AttributeValue</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">saml:Attribute</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">saml:AttributeStatement</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">saml:Assertion</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="AuthnRequest-示例"><a href="#AuthnRequest-示例" class="headerlink" title="AuthnRequest 示例"></a>AuthnRequest 示例</h2><p><code>AuthnRequest</code> 由 SP 生成并发送给 IdP，用来请求 IdP 对用户进行认证。下面示例中的 <code>ProtocolBinding</code> 表示 SP 希望 IdP 使用哪种 Binding 把 <code>Response</code> 返回到 ACS，而不是当前 <code>AuthnRequest</code> 自己使用的传输方式。</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">samlp:AuthnRequest</span></span></span><br><span class="line"><span class="tag">    <span class="attr">xmlns:samlp</span>=<span class="string">&quot;urn:oasis:names:tc:SAML:2.0:protocol&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">xmlns:saml</span>=<span class="string">&quot;urn:oasis:names:tc:SAML:2.0:assertion&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">ID</span>=<span class="string">&quot;_authn-request-123&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">Version</span>=<span class="string">&quot;2.0&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">IssueInstant</span>=<span class="string">&quot;2026-05-16T08:00:00Z&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">Destination</span>=<span class="string">&quot;https://idp.example.com/sso&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">AssertionConsumerServiceURL</span>=<span class="string">&quot;https://sp.example.com/saml/acs&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">ProtocolBinding</span>=<span class="string">&quot;urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST&quot;</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">saml:Issuer</span>&gt;</span>https://sp.example.com/metadata<span class="tag">&lt;/<span class="name">saml:Issuer</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">samlp:NameIDPolicy</span></span></span><br><span class="line"><span class="tag">      <span class="attr">AllowCreate</span>=<span class="string">&quot;true&quot;</span></span></span><br><span class="line"><span class="tag">      <span class="attr">Format</span>=<span class="string">&quot;urn:oasis:names:tc:SAML:2.0:nameid-format:transient&quot;</span>/&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">samlp:RequestedAuthnContext</span> <span class="attr">Comparison</span>=<span class="string">&quot;minimum&quot;</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">saml:AuthnContextClassRef</span>&gt;</span>urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport<span class="tag">&lt;/<span class="name">saml:AuthnContextClassRef</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">samlp:RequestedAuthnContext</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">samlp:AuthnRequest</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<h1 id="常见-Binding"><a href="#常见-Binding" class="headerlink" title="常见 Binding"></a>常见 Binding</h1><table>
+<thead>
+<tr>
+<th>Binding</th>
+<th>常见承载方式</th>
+<th>典型用途</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>HTTP Redirect</td>
+<td>URL 查询参数 <code>SAMLRequest</code> 或 <code>SAMLResponse</code></td>
+<td>SP 发起登录时发送 <code>AuthnRequest</code></td>
+<td>消息通常先 DEFLATE 压缩，再 Base64 编码，最后 URL 编码。由于 URL 长度限制，适合较短请求。</td>
+</tr>
+<tr>
+<td>HTTP POST</td>
+<td>HTML 表单字段 <code>SAMLRequest</code> 或 <code>SAMLResponse</code></td>
+<td>IdP 向 SP 的 ACS 返回 <code>Response</code></td>
+<td>消息通常 Base64 编码后放入表单字段，由浏览器自动提交。POST 返回的 <code>SAMLResponse</code> 一般不再做 DEFLATE 压缩。</td>
+</tr>
+<tr>
+<td>HTTP Artifact</td>
+<td>浏览器只传递一个短 artifact</td>
+<td>对消息体大小或前端暴露有要求的场景</td>
+<td>接收方拿到 artifact 后，通过后端 SOAP 通道解析真实 SAML 消息。</td>
+</tr>
+<tr>
+<td>SOAP</td>
+<td>SOAP over HTTP</td>
+<td>Artifact 解析、属性查询、部分登出流程</td>
+<td>通常用于服务器到服务器的后端通信，不直接依赖浏览器跳转。</td>
+</tr>
+</tbody></table>
+<h1 id="SAML-工作流程"><a href="#SAML-工作流程" class="headerlink" title="SAML 工作流程"></a>SAML 工作流程</h1><p>下面以 SP 发起的 Web Browser SSO 为例说明登录流程。</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2025/07/01/SAML2-0%E5%8D%8F%E8%AE%AE/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://ttestoo.github.io/2025/02/01/NodeJS-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avator.jpg">
+      <meta itemprop="name" content="ttestoo">
+      <meta itemprop="description" content="不争">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ttestoo's blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2025/02/01/NodeJS-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/" class="post-title-link" itemprop="url">NodeJS 反序列化</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2025-02-01 00:00:00" itemprop="dateCreated datePublished" datetime="2025-02-01T00:00:00+08:00">2025-02-01</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2026-05-16 00:00:00" itemprop="dateModified" datetime="2026-05-16T00:00:00+08:00">2026-05-16</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/NodeJS/" itemprop="url" rel="index"><span itemprop="name">NodeJS</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/NodeJS/%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/" itemprop="url" rel="index"><span itemprop="name">反序列化</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>5.8k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>5 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h1 id="Node-js-node-serialize-反序列化漏洞（CVE-2017-5941）"><a href="#Node-js-node-serialize-反序列化漏洞（CVE-2017-5941）" class="headerlink" title="Node.js node-serialize 反序列化漏洞（CVE-2017-5941）"></a>Node.js node-serialize 反序列化漏洞（CVE-2017-5941）</h1><p><code>node-serialize</code> 是一个可以把 JavaScript 对象及其函数属性序列化为 JSON 字符串的 npm 包。该包 <code>&lt;= 0.0.4</code> 版本存在反序列化任意代码执行漏洞：如果应用把攻击者可控的数据传入 <code>unserialize()</code>，攻击者可以通过立即调用函数表达式（Immediately Invoked Function Expression，IIFE）在 Node.js 进程中执行任意 JavaScript 代码。</p>
+<p>该问题的本质不是 Node.js 自身漏洞，而是 <code>node-serialize</code> 在反序列化函数时直接使用了 <code>eval()</code>。GitHub Advisory 标记该漏洞影响版本为 <code>&lt;= 0.0.4</code>，无官方修复版本；NVD 给出的 CVSS 3.1 评分为 <code>9.8 CRITICAL</code>，漏洞类型为 CWE-502（不可信数据反序列化）。</p>
+<h2 id="影响条件"><a href="#影响条件" class="headerlink" title="影响条件"></a>影响条件</h2><p>满足以下条件时才会形成可利用风险：</p>
+<ol>
+<li>项目依赖 <code>node-serialize</code>，且版本为 <code>0.0.4</code> 或更早版本。</li>
+<li>服务端代码调用了 <code>serialize.unserialize()</code>。</li>
+<li><code>unserialize()</code> 的入参可被外部用户控制，或可被外部用户篡改，例如 Cookie、请求体、缓存、消息队列、数据库字段等。</li>
+<li>Node.js 进程具有执行敏感操作的权限，例如访问文件系统、环境变量、内网资源或可通过 <code>child_process</code> 启动系统命令。</li>
+</ol>
+<p>如果数据只在完全可信的服务端内部流转，风险会降低；但只要序列化字符串会经过客户端、日志回放、数据库写入、消息投递等可篡改环节，就不能视为可信。</p>
+<h2 id="JavaScript-的-IIFE"><a href="#JavaScript-的-IIFE" class="headerlink" title="JavaScript 的 IIFE"></a>JavaScript 的 IIFE</h2><p>IIFE 是“定义后立即调用”的函数表达式。需要注意的是，IIFE 并不是“对象创建时一定会被调用”，而是在 JavaScript 引擎求值到该表达式时立即执行；如果它被写作对象属性的值，那么对象字面量求值时会执行它。</p>
+<p>常见写法如下：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">(<span class="keyword">function</span>(<span class="params"></span>) &#123;</span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;Parentheses around the function&quot;</span>);</span><br><span class="line">&#125;)();</span><br><span class="line"></span><br><span class="line">(<span class="keyword">function</span>(<span class="params"></span>) &#123;</span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;Parentheses around the whole expression&quot;</span>);</span><br><span class="line">&#125;());</span><br><span class="line"></span><br><span class="line">!<span class="keyword">function</span>(<span class="params"></span>) &#123;</span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;Unary operator starts the expression&quot;</span>);</span><br><span class="line">&#125;();</span><br><span class="line"></span><br><span class="line">+<span class="keyword">function</span>(<span class="params"></span>) &#123;</span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;Unary plus starts the expression&quot;</span>);</span><br><span class="line">&#125;();</span><br></pre></td></tr></table></figure>
+
+<p>例如：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">(<span class="keyword">function</span>(<span class="params"></span>) &#123;</span><br><span class="line">  <span class="keyword">const</span> message = <span class="string">&quot;Hello&quot;</span>;</span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(message);</span><br><span class="line">&#125;)();</span><br></pre></td></tr></table></figure>
+
+<p>JavaScript 在语句开头遇到 <code>function</code> 时，会按函数声明解析。函数声明必须有名称，因此下面的代码会报语法错误：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">function</span> (<span class="params"></span>) &#123;</span><br><span class="line">  <span class="keyword">const</span> message = <span class="string">&quot;Hello&quot;</span>;</span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(message);</span><br><span class="line">&#125;();</span><br></pre></td></tr></table></figure>
+
+<p>即使补上函数名，函数声明也不能直接用后面的 <code>()</code> 立即调用：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">go</span>(<span class="params"></span>) &#123;</span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;Hello&quot;</span>);</span><br><span class="line">&#125;();</span><br></pre></td></tr></table></figure>
+
+<p>因此通常用括号或一元运算符把它转为函数表达式：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">(<span class="keyword">function</span> <span class="title function_">go</span>(<span class="params"></span>) &#123;</span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;Hello&quot;</span>);</span><br><span class="line">&#125;)();</span><br></pre></td></tr></table></figure>
+
+<p>在 macOS 测试环境中，下面的 IIFE 会在表达式被求值时打开计算器：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">(<span class="keyword">function</span>(<span class="params"></span>) &#123;</span><br><span class="line">  <span class="built_in">require</span>(<span class="string">&quot;child_process&quot;</span>).<span class="title function_">exec</span>(<span class="string">&quot;open -a Calculator&quot;</span>, <span class="keyword">function</span>(<span class="params">error, stdout, stderr</span>) &#123;</span><br><span class="line">    <span class="variable language_">console</span>.<span class="title function_">log</span>(stdout);</span><br><span class="line">  &#125;);</span><br><span class="line">&#125;)();</span><br></pre></td></tr></table></figure>
+
+<h2 id="环境准备"><a href="#环境准备" class="headerlink" title="环境准备"></a>环境准备</h2><p>测试依赖：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">npm install node-serialize@0.0.4</span><br></pre></td></tr></table></figure>
+
+<p>本文示例使用 macOS 的 <code>open -a Calculator</code> 作为演示命令。Linux 环境可替换为 <code>id</code>、<code>touch /tmp/node_serialize_poc</code> 等命令；Windows 环境可替换为 <code>calc.exe</code>。</p>
+<h2 id="正常序列化示例"><a href="#正常序列化示例" class="headerlink" title="正常序列化示例"></a>正常序列化示例</h2><p><code>node-serialize</code> 支持把函数属性转成带 <code>_$$ND_FUNC$$_</code> 前缀的字符串：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> serialize = <span class="built_in">require</span>(<span class="string">&quot;node-serialize&quot;</span>);</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> obj = &#123;</span><br><span class="line">  <span class="attr">name</span>: <span class="string">&quot;demo&quot;</span>,</span><br><span class="line">  <span class="attr">run</span>: <span class="keyword">function</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="string">&quot;hello &quot;</span> + <span class="variable language_">this</span>.<span class="property">name</span>;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;Serialized:\n&quot;</span> + serialize.<span class="title function_">serialize</span>(obj));</span><br></pre></td></tr></table></figure>
+
+<p>输出结果类似：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span><span class="attr">&quot;name&quot;</span><span class="punctuation">:</span><span class="string">&quot;demo&quot;</span><span class="punctuation">,</span><span class="attr">&quot;run&quot;</span><span class="punctuation">:</span><span class="string">&quot;_$$ND_FUNC$$_function() &#123;\n    return \&quot;hello \&quot; + this.name;\n  &#125;&quot;</span><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2025/02/01/NodeJS-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://ttestoo.github.io/2024/06/01/%E6%94%AF%E4%BB%98%E4%BA%8C%E7%BB%B4%E7%A0%81/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avator.jpg">
+      <meta itemprop="name" content="ttestoo">
+      <meta itemprop="description" content="不争">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ttestoo's blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2024/06/01/%E6%94%AF%E4%BB%98%E4%BA%8C%E7%BB%B4%E7%A0%81/" class="post-title-link" itemprop="url">支付二维码</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2024-06-01 00:00:00" itemprop="dateCreated datePublished" datetime="2024-06-01T00:00:00+08:00">2024-06-01</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2026-05-16 00:00:00" itemprop="dateModified" datetime="2026-05-16T00:00:00+08:00">2026-05-16</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%94%AF%E4%BB%98%E5%AE%89%E5%85%A8/" itemprop="url" rel="index"><span itemprop="name">支付安全</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%94%AF%E4%BB%98%E5%AE%89%E5%85%A8/%E4%BA%8C%E7%BB%B4%E7%A0%81/" itemprop="url" rel="index"><span itemprop="name">二维码</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>7.3k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>7 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h1 id="支付二维码标准：QR-Code、EMV-QR-Code、SGQR-与-QRIS"><a href="#支付二维码标准：QR-Code、EMV-QR-Code、SGQR-与-QRIS" class="headerlink" title="支付二维码标准：QR Code、EMV QR Code、SGQR 与 QRIS"></a>支付二维码标准：QR Code、EMV QR Code、SGQR 与 QRIS</h1><h2 id="二维码与-QR-Code"><a href="#二维码与-QR-Code" class="headerlink" title="二维码与 QR Code"></a>二维码与 QR Code</h2><p>二维码是对一维条码的一次扩展：一维条码主要在单一方向上编码信息，二维码可以在水平和垂直两个方向上编码，因此在相同面积内能承载更多数据。</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2024/06/01/%E6%94%AF%E4%BB%98%E4%BA%8C%E7%BB%B4%E7%A0%81/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://ttestoo.github.io/2024/02/01/FIDO%E8%BA%AB%E4%BB%BD%E8%AE%A4%E8%AF%81%E6%96%B9%E5%BC%8F/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avator.jpg">
+      <meta itemprop="name" content="ttestoo">
+      <meta itemprop="description" content="不争">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ttestoo's blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2024/02/01/FIDO%E8%BA%AB%E4%BB%BD%E8%AE%A4%E8%AF%81%E6%96%B9%E5%BC%8F/" class="post-title-link" itemprop="url">FIDO身份认证方式</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2024-02-01 00:00:00" itemprop="dateCreated datePublished" datetime="2024-02-01T00:00:00+08:00">2024-02-01</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2026-05-16 00:00:00" itemprop="dateModified" datetime="2026-05-16T00:00:00+08:00">2026-05-16</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E8%BA%AB%E4%BB%BD%E8%AE%A4%E8%AF%81/" itemprop="url" rel="index"><span itemprop="name">身份认证</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E8%BA%AB%E4%BB%BD%E8%AE%A4%E8%AF%81/FIDO/" itemprop="url" rel="index"><span itemprop="name">FIDO</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>4.3k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>4 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h1 id="认识-FIDO"><a href="#认识-FIDO" class="headerlink" title="认识 FIDO"></a>认识 FIDO</h1><h2 id="1-背景"><a href="#1-背景" class="headerlink" title="1. 背景"></a>1. 背景</h2><p>传统身份认证最常见的方式是口令。服务端通常不会直接保存明文口令，而是保存口令哈希；但一旦哈希库泄露，攻击者仍可能通过撞库、字典攻击、弱口令复用等方式获得账号访问能力。</p>
+<p>生物特征本身也不适合作为可远程校验的共享秘密。指纹、人脸等生物特征一旦泄露无法像口令一样更换；现代系统通常会把生物特征模板保存在本地安全环境中，用于本地解锁或本地用户验证，而不是把原始生物特征交给业务服务端。</p>
+<p>FIDO 要解决的核心问题是：让业务服务端不再依赖可被共享、可被重放、可被钓鱼的秘密，而是使用与站点绑定的公私钥凭证完成认证。</p>
+<h2 id="2-解决思路"><a href="#2-解决思路" class="headerlink" title="2. 解决思路"></a>2. 解决思路</h2><p>FIDO 使用标准公钥密码学。注册时，认证器为某个用户账号和某个在线服务生成一对密钥：</p>
+<ul>
+<li>公钥发送并保存到服务端；</li>
+<li>私钥保存在用户的认证器中，例如手机安全芯片、操作系统凭据管理器、TPM、安全密钥等；</li>
+<li>指纹、人脸、PIN 等只用于本地解锁认证器或完成本地用户验证，不会发送给业务服务端；</li>
+<li>后续登录时，服务端下发挑战值，认证器使用私钥签名，服务端使用注册时保存的公钥验签。</li>
+</ul>
+<p>由于 FIDO 凭证会绑定到站点域名或应用标识，钓鱼站点即使诱导用户操作，也很难拿到可在真实站点重放的认证结果。</p>
+<h2 id="3-FIDO-联盟"><a href="#3-FIDO-联盟" class="headerlink" title="3. FIDO 联盟"></a>3. FIDO 联盟</h2><p>FIDO 联盟是一个开放的行业协会，目标是制定身份验证标准，减少互联网服务对密码的过度依赖。</p>
+<p>FIDO 联盟发布了三类核心用户身份验证规范：</p>
+<ul>
+<li><strong>FIDO UAF</strong>（Universal Authentication Framework）：支持无密码体验；</li>
+<li><strong>FIDO U2F</strong>（Universal Second Factor）：支持第二因素体验；</li>
+<li><strong>CTAP</strong>（Client to Authenticator Protocol）：客户端与认证器之间的通信协议。</li>
+</ul>
+<p>CTAP 与 W3C 的 <a target="_blank" rel="noopener" href="https://www.w3.org/TR/webauthn-3/">WebAuthn 规范</a> 共同组成 FIDO2。更准确地说，CTAP 是协议族，不等同于 CTAP2；CTAP1 是 U2F 的新名称，CTAP2 是 FIDO2 时代用于外部认证器的主要协议。</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2024/02/01/FIDO%E8%BA%AB%E4%BB%BD%E8%AE%A4%E8%AF%81%E6%96%B9%E5%BC%8F/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://ttestoo.github.io/2023/02/01/OIDC-OpenID-Connect/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avator.jpg">
+      <meta itemprop="name" content="ttestoo">
+      <meta itemprop="description" content="不争">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ttestoo's blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2023/02/01/OIDC-OpenID-Connect/" class="post-title-link" itemprop="url">OIDC(OpenID Connect)</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2023-02-01 00:00:00" itemprop="dateCreated datePublished" datetime="2023-02-01T00:00:00+08:00">2023-02-01</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2026-05-16 00:00:00" itemprop="dateModified" datetime="2026-05-16T00:00:00+08:00">2026-05-16</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E8%BA%AB%E4%BB%BD%E8%AE%A4%E8%AF%81/" itemprop="url" rel="index"><span itemprop="name">身份认证</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E8%BA%AB%E4%BB%BD%E8%AE%A4%E8%AF%81/OIDC/" itemprop="url" rel="index"><span itemprop="name">OIDC</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>12k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>10 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h1 id="OIDC-OpenID-Connect"><a href="#OIDC-OpenID-Connect" class="headerlink" title="OIDC(OpenID Connect)"></a>OIDC(OpenID Connect)</h1><h2 id="检查结论与修正点"><a href="#检查结论与修正点" class="headerlink" title="检查结论与修正点"></a>检查结论与修正点</h2><p>原文的主线是正确的：OIDC 是建立在 OAuth 2.0 之上的身份认证协议，核心扩展是 <code>id_token</code> 和标准化的用户信息获取方式。需要修正和补充的点主要有：</p>
+<ol>
+<li>「微信登录第三方软件便是 OIDC 标准实现」这个说法不严谨。微信开放平台登录/网页授权更接近 OAuth 2.0 风格的三方登录，通常返回 <code>access_token</code>、<code>openid</code>、<code>unionid</code> 等，并不等同于标准 OIDC；Google 登录是更典型的 OIDC 应用。</li>
+<li><code>UserInfo Endpoint</code> 应使用 <code>access_token</code> 作为 Bearer Token 访问，不是携带 <code>id_token</code> 查询用户详细信息。</li>
+<li>OAuth 2.0 的 <code>access_token</code> 不一定是 JWT，可能是不透明字符串。只有在授权服务器采用 JWT access token 时，才可解析出类似 JSON 的 claims。</li>
+<li>隐式流程和混合流程仍属于 OIDC Core 规范内容，但现代安全实践中不应作为默认推荐方案。当前默认优先使用 Authorization Code Flow，并结合 PKCE。</li>
+<li>原文登出部分把 Session Management 和 RP-Initiated Logout 混在一起。真正由 RP 主动发起跳转登出的规范是 RP-Initiated Logout；Session Management 主要用于监控 OP 登录状态变化。</li>
+<li>ID Token 校验内容不完整，需要补充签名、<code>iss</code>、<code>aud</code>、<code>exp</code>、<code>nonce</code>、<code>azp</code>、<code>at_hash</code>/<code>c_hash</code> 等校验点。</li>
+<li>原文存在少量拼写和格式问题，例如 <code>Oauth</code> 应写作 <code>OAuth</code>，<code>Autherization</code> 应写作 <code>Authorization</code>，<code>Implici</code> 应写作 <code>Implicit</code>，<code>Hybrid Flow[</code> 多了方括号。</li>
+</ol>
+<h2 id="OIDC-介绍"><a href="#OIDC-介绍" class="headerlink" title="OIDC 介绍"></a>OIDC 介绍</h2><p>OpenID Connect，简称 OIDC，是建立在 OAuth 2.0 之上的身份认证层。OAuth 2.0 解决的是「授权」问题：第三方客户端如何代表用户访问受保护资源；OIDC 在此基础上解决「认证」问题：第三方客户端如何确认当前登录用户是谁。</p>
+<p>可以简化理解为：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">OIDC = OAuth 2.0 授权框架 + 身份认证层 + 标准化用户信息接口</span><br></pre></td></tr></table></figure>
+
+<p>OIDC 客户端通过在授权请求中加入 <code>scope=openid</code> 来声明这是一次 OIDC 认证请求。OP 完成用户认证后，会向客户端返回 <code>id_token</code>。<code>id_token</code> 是一个 JWT，里面包含用户身份、签发方、受众、过期时间等 claims，RP 可以通过校验它来确认用户身份。</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2023/02/01/OIDC-OpenID-Connect/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
       
   
   
@@ -770,331 +1397,11 @@
   
   
 
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://ttestoo.github.io/2021/09/10/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96-%E5%8F%8D%E5%B0%84/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avator.jpg">
-      <meta itemprop="name" content="ttestoo">
-      <meta itemprop="description" content="不争">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="ttestoo's blog">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2021/09/10/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96-%E5%8F%8D%E5%B0%84/" class="post-title-link" itemprop="url">Java反序列化-反射</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-              
-
-              <time title="创建时间：2021-09-10 01:34:36 / 修改时间：14:50:14" itemprop="dateCreated datePublished" datetime="2021-09-10T01:34:36+08:00">2021-09-10</time>
-            </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/" itemprop="url" rel="index"><span itemprop="name">反序列化</span></a>
-                </span>
-                  ，
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/Java-Sec/" itemprop="url" rel="index"><span itemprop="name">Java Sec</span></a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-file-word-o"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>6.8k</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-clock-o"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>6 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>准备花段时间复习、学习下Java反序列化相关内容，为尽量防止学习知识再次一知半解，尽可能记录下；此为第一篇：Java反射相关知识。</p>
-<blockquote>
-<p>很多知识一知半解导致需要花费更多的时间去弥补。。。</p>
-</blockquote>
-<h1 id="问题引出"><a href="#问题引出" class="headerlink" title="问题引出"></a>问题引出</h1><p>如何根据配置的类名称和方法名称实现对象的创建及方法调用呢？</p>
-<p>例如，在配置文件config.properties中配置了类名称和方法名称：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">classPath=com.ttestoo.model.Person</span><br><span class="line">methodName=getName</span><br></pre></td></tr></table></figure>
-
-
-<p>如果此时想通过读取解析配置文件尝试进行实例化是不可行的，因为此时读取到的classPath变量是String类型，无法通过new 类名()的方式实例化：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">// 通过Properties读取配置文件内容</span><br><span class="line">Properties properties = new Properties();</span><br><span class="line">properties.load(new FileInputStream(&quot;java-sec-study/java-reflection/src/main/resources/config.properties&quot;));</span><br><span class="line"></span><br><span class="line">String classPath = properties.getProperty(&quot;classPath&quot;);</span><br><span class="line">System.out.println(classPath + &quot;运行类型：&quot; + classPath.getClass());</span><br><span class="line"></span><br><span class="line">String methodName = properties.getProperty(&quot;methodName&quot;);</span><br><span class="line">System.out.println(methodName + &quot;运行类型：&quot; + methodName.getClass());</span><br><span class="line"></span><br><span class="line">new classPath();	//报错</span><br></pre></td></tr></table></figure>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2021/09/10/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96-%E5%8F%8D%E5%B0%84/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://ttestoo.github.io/2021/09/08/Shiro%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avator.jpg">
-      <meta itemprop="name" content="ttestoo">
-      <meta itemprop="description" content="不争">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="ttestoo's blog">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2021/09/08/Shiro%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/" class="post-title-link" itemprop="url">Shiro权限绕过漏洞分析</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2021-09-08 23:03:39" itemprop="dateCreated datePublished" datetime="2021-09-08T23:03:39+08:00">2021-09-08</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-01-22 16:11:08" itemprop="dateModified" datetime="2022-01-22T16:11:08+08:00">2022-01-22</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Shiro/" itemprop="url" rel="index"><span itemprop="name">Shiro</span></a>
-                </span>
-                  ，
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Shiro/Java-Sec/" itemprop="url" rel="index"><span itemprop="name">Java Sec</span></a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-file-word-o"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>15k</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-clock-o"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>13 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>前段时间遇到通过分号绕过nginx层屏蔽并顺利访问到Springboot项目actuator端点的问题，修复过程中偶然发现当项目使用shiro组件时，若将shiro升级到1.6.0可间接修复分号绕过的问题，当请求url中包含分号时响应状态码为400；</p>
-<p>考虑到shiro主要用来执行身份验证授权等，理论上不适合直接阻断存在分号的请求；</p>
-<p>为搞明白此问题，决定对shiro的权限校验问题进行整理学习，下面为常见的shiro权限绕过漏洞分析修复过程。</p>
-<blockquote>
-<p>文章首发于安全客：<a target="_blank" rel="noopener" href="https://www.anquanke.com/post/id/253749">https://www.anquanke.com/post/id/253749</a></p>
-</blockquote>
-<h1 id="Shiro-Filter"><a href="#Shiro-Filter" class="headerlink" title="Shiro Filter"></a>Shiro Filter</h1><p>学习shiro权限绕过漏洞之前，有必要了解下shiro filter的过滤过程；</p>
-<p>一个http请求过来，首先经过web容器的处理（这里默认为tomcat）被投放到相应的web应用，web应用会通过过滤器Filter链式的对http请求进行预处理，这里将会经过shiro的Filter（SpringShiroFilter）处理：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">org.apache.catalina.core.ApplicationFilterChain#internalDoFilter --&gt; org.apache.shiro.web.servlet.OncePerRequestFilter#doFilter		--&gt;    </span><br><span class="line">org.apache.shiro.web.servlet.AbstractShiroFilter#doFilterInternal  --&gt;</span><br><span class="line">org.apache.shiro.web.servlet.AbstractShiroFilter#executeChain</span><br></pre></td></tr></table></figure>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2021/09/08/Shiro%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://ttestoo.github.io/2021/08/19/SpringBoot-Actuator-SnakeYAML-RCE%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avator.jpg">
-      <meta itemprop="name" content="ttestoo">
-      <meta itemprop="description" content="不争">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="ttestoo's blog">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2021/08/19/SpringBoot-Actuator-SnakeYAML-RCE%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/" class="post-title-link" itemprop="url">SpringBoot Actuator SnakeYAML RCE漏洞分析</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2021-08-19 20:02:37" itemprop="dateCreated datePublished" datetime="2021-08-19T20:02:37+08:00">2021-08-19</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-12-21 17:48:27" itemprop="dateModified" datetime="2021-12-21T17:48:27+08:00">2021-12-21</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/" itemprop="url" rel="index"><span itemprop="name">漏洞分析</span></a>
-                </span>
-                  ，
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/Java-Sec/" itemprop="url" rel="index"><span itemprop="name">Java Sec</span></a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-file-word-o"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>11k</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-clock-o"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>10 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>近期公网监控过程中又发现存在actuator组件开放的情况，且env端点发现存在SnakeYAML依赖，由于业务重要性较低，为判断能否通过此问题进一步深入到内部，尝试借用SnakeYAML依赖获取服务端权限，失败了……</p>
-<p>下面对actuator+SnakeYAML rce利用进行记录分析。</p>
-<blockquote>
-<p>文章首发于安全客：<a target="_blank" rel="noopener" href="https://www.anquanke.com/post/id/254629">https://www.anquanke.com/post/id/254629</a></p>
-</blockquote>
-<h1 id="SnakeYAML使用"><a href="#SnakeYAML使用" class="headerlink" title="SnakeYAML使用"></a>SnakeYAML使用</h1><p>是Java用于解析yaml格式数据的类库, 它提供了dump()将java对象转为yaml格式字符串，load()将yaml字符串转为java对象；</p>
-<p>创建一个User类：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">User</span> &#123;</span><br><span class="line">    String name;</span><br><span class="line">    Integer age;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> String <span class="title function_">getName</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> name;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">setName</span><span class="params">(String name)</span> &#123;</span><br><span class="line">        <span class="built_in">this</span>.name = name;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> Integer <span class="title function_">getAge</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> age;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">setAge</span><span class="params">(Integer age)</span> &#123;</span><br><span class="line">        <span class="built_in">this</span>.age = age;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> String <span class="title function_">toString</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="string">&quot;User&#123;&quot;</span> +</span><br><span class="line">                <span class="string">&quot;name=&#x27;&quot;</span> + name + <span class="string">&#x27;\&#x27;&#x27;</span> +</span><br><span class="line">                <span class="string">&quot;, age=&quot;</span> + age +</span><br><span class="line">                <span class="string">&#x27;&#125;&#x27;</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-
-<p>snakeyaml序列化、反序列化测试：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">SnakeYamlTest</span> &#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> &#123;</span><br><span class="line">        <span class="comment">// 序列化测试</span></span><br><span class="line">        <span class="type">User</span> <span class="variable">user</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">User</span>();</span><br><span class="line">        user.setName(<span class="string">&quot;test&quot;</span>);</span><br><span class="line">        user.setAge(<span class="number">20</span>);</span><br><span class="line">        <span class="type">Yaml</span> <span class="variable">yaml1</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Yaml</span>();</span><br><span class="line">        <span class="type">String</span> <span class="variable">dump1</span> <span class="operator">=</span> yaml1.dump(user);</span><br><span class="line">        System.out.println(<span class="string">&quot;snakeyaml序列化测试：&quot;</span>);</span><br><span class="line">        System.out.println(dump1);</span><br><span class="line"></span><br><span class="line">        <span class="comment">//反序列化测试</span></span><br><span class="line">        <span class="type">String</span> <span class="variable">dump2</span> <span class="operator">=</span> <span class="string">&quot;!!com.ttestoo.snakeyaml.demo.User &#123;age: 30, name: admin&#125;&quot;</span>;</span><br><span class="line">        <span class="type">Yaml</span> <span class="variable">yaml2</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Yaml</span>();</span><br><span class="line">        <span class="type">Object</span> <span class="variable">load</span> <span class="operator">=</span> yaml2.load(dump2);</span><br><span class="line">        System.out.println(<span class="string">&quot;snakeyaml反序列化测试：&quot;</span>);</span><br><span class="line">        System.out.println(load.getClass());</span><br><span class="line">        System.out.println(load);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-
-<p>运行结果：</p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2021/08/19/SpringBoot-Actuator-SnakeYAML-RCE%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
 
   
+  <nav class="pagination">
+    <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><a class="extend next" rel="next" href="/page/2/"><i class="fa fa-angle-right" aria-label="下一页"></i></a>
+  </nav>
 
 
 
@@ -1161,16 +1468,16 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">8</span>
+          <span class="site-state-item-count">13</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
       <div class="site-state-item site-state-categories">
-        <span class="site-state-item-count">16</span>
+        <span class="site-state-item-count">24</span>
         <span class="site-state-item-name">分类</span>
       </div>
       <div class="site-state-item site-state-tags">
-        <span class="site-state-item-count">15</span>
+        <span class="site-state-item-count">31</span>
         <span class="site-state-item-name">标签</span>
       </div>
   </nav>
@@ -1230,13 +1537,13 @@
       <i class="fa fa-area-chart"></i>
     </span>
       <span class="post-meta-item-text">站点总字数：</span>
-    <span title="站点总字数">80k</span>
+    <span title="站点总字数">118k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
       <span class="post-meta-item-text">站点阅读时长 &asymp;</span>
-    <span title="站点阅读时长">1:12</span>
+    <span title="站点阅读时长">1:47</span>
 </div>
 
         

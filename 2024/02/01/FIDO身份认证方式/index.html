@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+  <meta name="baidu-site-verification" content="code-IgVCkP0vYS">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"ttestoo.github.io","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":"mac"},"back2top":{"enable":true,"sidebar":true,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="认识 FIDO1. 背景传统身份认证最常见的方式是口令。服务端通常不会直接保存明文口令，而是保存口令哈希；但一旦哈希库泄露，攻击者仍可能通过撞库、字典攻击、弱口令复用等方式获得账号访问能力。 生物特征本身也不适合作为可远程校验的共享秘密。指纹、人脸等生物特征一旦泄露无法像口令一样更换；现代系统通常会把生物特征模板保存在本地安全环境中，用于本地解锁或本地用户验证，而不是把原始生物特征交给业务服务端。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="FIDO身份认证方式">
+<meta property="og:url" content="https://ttestoo.github.io/2024/02/01/FIDO%E8%BA%AB%E4%BB%BD%E8%AE%A4%E8%AF%81%E6%96%B9%E5%BC%8F/index.html">
+<meta property="og:site_name" content="ttestoo&#39;s blog">
+<meta property="og:description" content="认识 FIDO1. 背景传统身份认证最常见的方式是口令。服务端通常不会直接保存明文口令，而是保存口令哈希；但一旦哈希库泄露，攻击者仍可能通过撞库、字典攻击、弱口令复用等方式获得账号访问能力。 生物特征本身也不适合作为可远程校验的共享秘密。指纹、人脸等生物特征一旦泄露无法像口令一样更换；现代系统通常会把生物特征模板保存在本地安全环境中，用于本地解锁或本地用户验证，而不是把原始生物特征交给业务服务端。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://ttestoo.github.io/2024/02/01/FIDO%E8%BA%AB%E4%BB%BD%E8%AE%A4%E8%AF%81%E6%96%B9%E5%BC%8F/assets/fido-spec-overview.png">
+<meta property="og:image" content="https://ttestoo.github.io/2024/02/01/FIDO%E8%BA%AB%E4%BB%BD%E8%AE%A4%E8%AF%81%E6%96%B9%E5%BC%8F/assets/fido-uaf-registration.png">
+<meta property="og:image" content="https://ttestoo.github.io/2024/02/01/FIDO%E8%BA%AB%E4%BB%BD%E8%AE%A4%E8%AF%81%E6%96%B9%E5%BC%8F/assets/fido-uaf-authentication.png">
+<meta property="og:image" content="https://ttestoo.github.io/2024/02/01/FIDO%E8%BA%AB%E4%BB%BD%E8%AE%A4%E8%AF%81%E6%96%B9%E5%BC%8F/assets/fido-u2f-registration.png">
+<meta property="og:image" content="https://ttestoo.github.io/2024/02/01/FIDO%E8%BA%AB%E4%BB%BD%E8%AE%A4%E8%AF%81%E6%96%B9%E5%BC%8F/assets/fido2-overview.png">
+<meta property="article:published_time" content="2024-01-31T16:00:00.000Z">
+<meta property="article:modified_time" content="2026-05-15T16:00:00.000Z">
+<meta property="article:author" content="ttestoo">
+<meta property="article:tag" content="FIDO">
+<meta property="article:tag" content="WebAuthn">
+<meta property="article:tag" content="Passkey">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://ttestoo.github.io/2024/02/01/FIDO%E8%BA%AB%E4%BB%BD%E8%AE%A4%E8%AF%81%E6%96%B9%E5%BC%8F/assets/fido-spec-overview.png">
+
+<link rel="canonical" href="https://ttestoo.github.io/2024/02/01/FIDO%E8%BA%AB%E4%BB%BD%E8%AE%A4%E8%AF%81%E6%96%B9%E5%BC%8F/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>FIDO身份认证方式 | ttestoo's blog</title>
+  
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?2509b78f4891a940e38e443a10f826fa";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="ttestoo's blog" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">ttestoo's blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">领悟。</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档<span class="badge">13</span></a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签<span class="badge">31</span></a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类<span class="badge">24</span></a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://ttestoo.github.io/2024/02/01/FIDO%E8%BA%AB%E4%BB%BD%E8%AE%A4%E8%AF%81%E6%96%B9%E5%BC%8F/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avator.jpg">
+      <meta itemprop="name" content="ttestoo">
+      <meta itemprop="description" content="不争">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ttestoo's blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          FIDO身份认证方式
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2024-02-01 00:00:00" itemprop="dateCreated datePublished" datetime="2024-02-01T00:00:00+08:00">2024-02-01</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2026-05-16 00:00:00" itemprop="dateModified" datetime="2026-05-16T00:00:00+08:00">2026-05-16</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E8%BA%AB%E4%BB%BD%E8%AE%A4%E8%AF%81/" itemprop="url" rel="index"><span itemprop="name">身份认证</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E8%BA%AB%E4%BB%BD%E8%AE%A4%E8%AF%81/FIDO/" itemprop="url" rel="index"><span itemprop="name">FIDO</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>4.3k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>4 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="认识-FIDO"><a href="#认识-FIDO" class="headerlink" title="认识 FIDO"></a>认识 FIDO</h1><h2 id="1-背景"><a href="#1-背景" class="headerlink" title="1. 背景"></a>1. 背景</h2><p>传统身份认证最常见的方式是口令。服务端通常不会直接保存明文口令，而是保存口令哈希；但一旦哈希库泄露，攻击者仍可能通过撞库、字典攻击、弱口令复用等方式获得账号访问能力。</p>
+<p>生物特征本身也不适合作为可远程校验的共享秘密。指纹、人脸等生物特征一旦泄露无法像口令一样更换；现代系统通常会把生物特征模板保存在本地安全环境中，用于本地解锁或本地用户验证，而不是把原始生物特征交给业务服务端。</p>
+<p>FIDO 要解决的核心问题是：让业务服务端不再依赖可被共享、可被重放、可被钓鱼的秘密，而是使用与站点绑定的公私钥凭证完成认证。</p>
+<h2 id="2-解决思路"><a href="#2-解决思路" class="headerlink" title="2. 解决思路"></a>2. 解决思路</h2><p>FIDO 使用标准公钥密码学。注册时，认证器为某个用户账号和某个在线服务生成一对密钥：</p>
+<ul>
+<li>公钥发送并保存到服务端；</li>
+<li>私钥保存在用户的认证器中，例如手机安全芯片、操作系统凭据管理器、TPM、安全密钥等；</li>
+<li>指纹、人脸、PIN 等只用于本地解锁认证器或完成本地用户验证，不会发送给业务服务端；</li>
+<li>后续登录时，服务端下发挑战值，认证器使用私钥签名，服务端使用注册时保存的公钥验签。</li>
+</ul>
+<p>由于 FIDO 凭证会绑定到站点域名或应用标识，钓鱼站点即使诱导用户操作，也很难拿到可在真实站点重放的认证结果。</p>
+<h2 id="3-FIDO-联盟"><a href="#3-FIDO-联盟" class="headerlink" title="3. FIDO 联盟"></a>3. FIDO 联盟</h2><p>FIDO 联盟是一个开放的行业协会，目标是制定身份验证标准，减少互联网服务对密码的过度依赖。</p>
+<p>FIDO 联盟发布了三类核心用户身份验证规范：</p>
+<ul>
+<li><strong>FIDO UAF</strong>（Universal Authentication Framework）：支持无密码体验；</li>
+<li><strong>FIDO U2F</strong>（Universal Second Factor）：支持第二因素体验；</li>
+<li><strong>CTAP</strong>（Client to Authenticator Protocol）：客户端与认证器之间的通信协议。</li>
+</ul>
+<p>CTAP 与 W3C 的 <a target="_blank" rel="noopener" href="https://www.w3.org/TR/webauthn-3/">WebAuthn 规范</a> 共同组成 FIDO2。更准确地说，CTAP 是协议族，不等同于 CTAP2；CTAP1 是 U2F 的新名称，CTAP2 是 FIDO2 时代用于外部认证器的主要协议。</p>
+<span id="more"></span>
+
+<p><img src="assets/fido-spec-overview.png" alt="FIDO 规范关系"></p>
+<h2 id="4-UAF、U2F、CTAP、FIDO2-和-Passkey-的关系"><a href="#4-UAF、U2F、CTAP、FIDO2-和-Passkey-的关系" class="headerlink" title="4. UAF、U2F、CTAP、FIDO2 和 Passkey 的关系"></a>4. UAF、U2F、CTAP、FIDO2 和 Passkey 的关系</h2><ul>
+<li><strong>UAF</strong>：面向无密码登录，常见体验是用户在设备本地完成指纹、人脸、PIN 等验证，服务端通过公钥验签确认用户身份。</li>
+<li><strong>U2F / CTAP1</strong>：面向第二因素登录，用户仍先输入用户名和密码，再使用安全密钥等认证器完成第二因素验证。</li>
+<li><strong>CTAP2</strong>：让浏览器、操作系统或平台客户端可以通过 USB、NFC、BLE 等方式与外部认证器通信，也支持更丰富的 FIDO2 能力。</li>
+<li><strong>WebAuthn</strong>：W3C 标准 Web API，网站通过 <code>navigator.credentials.create()</code> 创建凭证，通过 <code>navigator.credentials.get()</code> 发起认证。</li>
+<li><strong>FIDO2</strong>：WebAuthn + CTAP，支持无密码、第二因素和多因素体验。</li>
+<li><strong>Passkey（通行密钥）</strong>：基于 FIDO2/WebAuthn 的用户友好概念，通常用于无密码登录体验；很多实现会使用可发现凭证（discoverable credential），也可以是设备绑定凭证或由平台凭据管理器在同一账号生态内同步的凭证。</li>
+</ul>
+<h1 id="FIDO-用户身份验证规范"><a href="#FIDO-用户身份验证规范" class="headerlink" title="FIDO 用户身份验证规范"></a>FIDO 用户身份验证规范</h1><h2 id="FIDO-UAF"><a href="#FIDO-UAF" class="headerlink" title="FIDO UAF"></a>FIDO UAF</h2><p>FIDO UAF 支持无密码体验。用户需要携带安装了 FIDO UAF 协议栈的设备，并选择一种本地验证机制，例如指纹、人脸、语音、PIN 等，将该设备注册到在线服务。</p>
+<p>UAF 场景举例：手机 App 中使用指纹或人脸完成登录、支付确认等操作。这里的指纹或人脸用于本地验证用户本人，业务服务端校验的是设备私钥生成的签名。</p>
+<h3 id="UAF-注册过程"><a href="#UAF-注册过程" class="headerlink" title="UAF 注册过程"></a>UAF 注册过程</h3><p>第一次使用时需要完成设备注册。认证器会生成针对该设备、服务和用户账户的密钥对，公钥发送到服务端保存，私钥保存在设备中。生物特征信息仅用于本地验证，不发送给服务端。</p>
+<p><img src="assets/fido-uaf-registration.png" alt="FIDO UAF 注册过程"></p>
+<p>典型步骤如下：</p>
+<ol>
+<li>用户在 App 或网页中发起注册；</li>
+<li>服务端返回注册挑战值和策略，例如允许哪些认证器、是否需要用户验证；</li>
+<li>设备本地完成用户验证，例如指纹、人脸或 PIN；</li>
+<li>认证器生成密钥对，并对注册数据做签名或证明；</li>
+<li>服务端保存公钥、凭证标识、计数器等信息。</li>
+</ol>
+<h3 id="UAF-无密码认证过程"><a href="#UAF-无密码认证过程" class="headerlink" title="UAF 无密码认证过程"></a>UAF 无密码认证过程</h3><p>注册后，用户再次登录时只需要完成本地验证。设备使用私钥对服务端挑战值进行签名，服务端使用保存的公钥验签。</p>
+<p><img src="assets/fido-uaf-authentication.png" alt="FIDO UAF 认证过程"></p>
+<p>认证过程的关键点：</p>
+<ul>
+<li>服务端每次认证都应生成随机挑战值，避免重放攻击；</li>
+<li>私钥不离开认证器；</li>
+<li>本地验证通过不等于服务端认证完成，服务端仍必须验证签名、挑战值、应用标识和凭证状态。</li>
+</ul>
+<h2 id="FIDO-U2F"><a href="#FIDO-U2F" class="headerlink" title="FIDO U2F"></a>FIDO U2F</h2><p>FIDO U2F 允许在线服务为已有的用户名密码登录增加强第二因素，而不是完全取代密码登录。</p>
+<p>U2F 的两个因子通常是：</p>
+<ul>
+<li>用户知道的内容：用户名和密码；</li>
+<li>用户持有的认证器：FIDO 安全密钥、支持安全密钥能力的手机或其他硬件认证器。</li>
+</ul>
+<p>需要注意：手机身份认证 App 中的 TOTP 动态验证码属于一次性口令方案，不是 FIDO U2F。U2F 的核心是认证器中的私钥对服务端挑战值签名，服务端用注册时保存的公钥验签。</p>
+<h3 id="U2F-注册过程"><a href="#U2F-注册过程" class="headerlink" title="U2F 注册过程"></a>U2F 注册过程</h3><p>用户完成用户名密码登录后，服务端要求绑定第二因素设备。浏览器或客户端把服务端挑战值转交给 U2F 认证器，认证器生成密钥对并返回公钥、key handle、认证器证明等数据，服务端保存这些注册信息。</p>
+<p><img src="assets/fido-u2f-registration.png" alt="FIDO U2F 注册过程"></p>
+<h3 id="U2F-认证过程"><a href="#U2F-认证过程" class="headerlink" title="U2F 认证过程"></a>U2F 认证过程</h3><p>后续登录时，用户先输入用户名密码。服务端再发起 U2F 挑战，认证器要求用户触摸安全密钥、靠近 NFC 设备或完成等价的用户存在确认，然后使用私钥签名。服务端校验签名、挑战值、应用标识和签名计数器。</p>
+<p>U2F 的安全价值在于：</p>
+<ul>
+<li>认证结果与真实站点绑定，降低钓鱼风险；</li>
+<li>私钥不可导出，攻击者拿到服务端数据库也无法直接伪造认证；</li>
+<li>认证器需要用户存在确认，降低远程静默滥用风险。</li>
+</ul>
+<h2 id="FIDO2（WebAuthn-CTAP）"><a href="#FIDO2（WebAuthn-CTAP）" class="headerlink" title="FIDO2（WebAuthn + CTAP）"></a>FIDO2（WebAuthn + CTAP）</h2><p>FIDO2 由 W3C WebAuthn 和 FIDO 联盟 CTAP 共同组成，支持使用嵌入式（平台）认证器或外部（漫游）认证器完成无密码、第二因素和多因素身份验证。</p>
+<p><img src="assets/fido2-overview.png" alt="FIDO2 概览"></p>
+<h3 id="WebAuthn"><a href="#WebAuthn" class="headerlink" title="WebAuthn"></a>WebAuthn</h3><p>WebAuthn 定义了浏览器和平台中的标准 Web API。网站作为 Relying Party（RP，依赖方）调用 WebAuthn API 创建和使用公钥凭证：</p>
+<ul>
+<li>注册：<code>navigator.credentials.create()</code>；</li>
+<li>认证：<code>navigator.credentials.get()</code>。</li>
+</ul>
+<p>WebAuthn 凭证会绑定到 RP ID，通常对应站点域名。浏览器会参与校验调用来源，认证器会基于 RP ID 选择或生成对应凭证。</p>
+<h3 id="CTAP2"><a href="#CTAP2" class="headerlink" title="CTAP2"></a>CTAP2</h3><p>CTAP2 定义客户端与外部认证器之间的通信方式，常见传输方式包括 USB、NFC 和 BLE。它使浏览器或操作系统能够使用 FIDO 安全密钥、手机、可穿戴设备等外部认证器，完成无密码、第二因素或多因素认证。</p>
+<p>CTAP2 消息使用 CBOR 编码，现代版本还支持 PIN/UV、可发现凭证、企业证明、大型 Blob、凭证管理等扩展能力，具体能力取决于认证器实现和平台支持。</p>
+<h3 id="CTAP1"><a href="#CTAP1" class="headerlink" title="CTAP1"></a>CTAP1</h3><p>CTAP1 是 FIDO U2F 的新名称，用于让已有 U2F 安全密钥在支持 FIDO2 的浏览器和操作系统中继续作为第二因素认证器使用。CTAP1 可以与 FIDO2 生态兼容，但它本身主要提供 U2F 第二因素能力，不提供 CTAP2 的完整能力。</p>
+<h2 id="FIDO2-注册与认证流程"><a href="#FIDO2-注册与认证流程" class="headerlink" title="FIDO2 注册与认证流程"></a>FIDO2 注册与认证流程</h2><h3 id="注册（Registration）"><a href="#注册（Registration）" class="headerlink" title="注册（Registration）"></a>注册（Registration）</h3><ol>
+<li>用户在网站或 App 中选择创建 passkey 或绑定安全密钥；</li>
+<li>服务端生成随机 challenge，并返回 RP ID、用户信息、允许的算法和认证器策略；</li>
+<li>浏览器或平台调用 WebAuthn API，把注册请求交给平台认证器或通过 CTAP 交给外部认证器；</li>
+<li>认证器完成用户存在确认或用户验证，生成凭证密钥对；</li>
+<li>客户端把 credential ID、公钥、attestation object、client data 等返回服务端；</li>
+<li>服务端验证 challenge、origin、RP ID、attestation（如业务需要）后，保存凭证记录。</li>
+</ol>
+<h3 id="认证（Authentication）"><a href="#认证（Authentication）" class="headerlink" title="认证（Authentication）"></a>认证（Authentication）</h3><ol>
+<li>用户访问登录页，选择使用 passkey 或安全密钥；</li>
+<li>服务端生成随机 challenge，并指定可接受的凭证或允许可发现凭证自动选择账号；</li>
+<li>浏览器或平台调用 WebAuthn API，请认证器对 challenge、RP ID hash、用户存在/验证状态等数据签名；</li>
+<li>认证器在用户确认后使用私钥签名；</li>
+<li>服务端使用保存的公钥验签，并校验 challenge、origin、RP ID、用户验证标记、签名计数器和凭证状态；</li>
+<li>验证通过后建立业务会话。</li>
+</ol>
+<h2 id="关键安全概念"><a href="#关键安全概念" class="headerlink" title="关键安全概念"></a>关键安全概念</h2><ul>
+<li><strong>用户存在（User Presence, UP）</strong>：确认用户正在场，例如触摸安全密钥。</li>
+<li><strong>用户验证（User Verification, UV）</strong>：确认是合法用户本人，例如指纹、人脸、设备 PIN。</li>
+<li><strong>Attestation（证明）</strong>：认证器在注册时向服务端证明自身型号或安全属性。很多普通消费场景会选择弱化或不强制 attestation，以减少隐私暴露和兼容性问题。</li>
+<li><strong>RP ID / Origin 绑定</strong>：凭证只能被对应站点或应用使用，是 FIDO 抗钓鱼的关键基础。</li>
+<li><strong>签名计数器</strong>：服务端可用它辅助发现同一凭证被克隆的风险，但不同认证器和同步 passkey 的计数器行为可能不同，不能把它作为唯一风控依据。</li>
+<li><strong>会话仍需保护</strong>：FIDO 可以提升登录认证强度，但不能替代会话管理、设备风控、CSRF 防护、XSS 防护和账号恢复流程安全。</li>
+</ul>
+<h2 id="常见误区"><a href="#常见误区" class="headerlink" title="常见误区"></a>常见误区</h2><ul>
+<li><strong>误区：FIDO 会把指纹发给网站。</strong> 实际上，指纹、人脸等生物特征用于本地解锁认证器，业务服务端接收和验证的是公钥签名结果。</li>
+<li><strong>误区：动态验证码 App 就是 U2F。</strong> TOTP 是基于共享密钥的一次性口令方案；U2F/FIDO2 是基于非对称密钥和站点绑定的挑战响应方案。</li>
+<li><strong>误区：FIDO2 只能无密码登录。</strong> FIDO2 既可以做无密码，也可以作为第二因素或多因素认证的一部分。</li>
+<li><strong>误区：Passkey 一定会跨设备同步。</strong> Passkey 可以是同步凭证，也可以是设备绑定凭证，取决于平台、认证器和服务策略。</li>
+</ul>
+<h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><ul>
+<li>FIDO 官方用户身份验证规范概述：<a target="_blank" rel="noopener" href="https://fidoalliance.org/specifications/?lang=zh-hans">https://fidoalliance.org/specifications/?lang=zh-hans</a></li>
+<li>FIDO 规范下载页：<a target="_blank" rel="noopener" href="https://fidoalliance.org/specifications/download/">https://fidoalliance.org/specifications/download/</a></li>
+<li>W3C WebAuthn Level 3：<a target="_blank" rel="noopener" href="https://www.w3.org/TR/webauthn-3/">https://www.w3.org/TR/webauthn-3/</a></li>
+<li>FIDO Passkeys 介绍：<a target="_blank" rel="noopener" href="https://fidoalliance.org/passkeys/">https://fidoalliance.org/passkeys/</a></li>
+<li>FIDO Passkey 创建与登录体验指南：<a target="_blank" rel="noopener" href="https://fidoalliance.org/ux-guidelines-for-passkey-creation-and-sign-ins/?lang=zh-hans">https://fidoalliance.org/ux-guidelines-for-passkey-creation-and-sign-ins/?lang=zh-hans</a></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/FIDO/" rel="tag"># FIDO</a>
+              <a href="/tags/WebAuthn/" rel="tag"># WebAuthn</a>
+              <a href="/tags/Passkey/" rel="tag"># Passkey</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2023/02/01/OIDC-OpenID-Connect/" rel="prev" title="OIDC(OpenID Connect)">
+      <i class="fa fa-chevron-left"></i> OIDC(OpenID Connect)
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2024/06/01/%E6%94%AF%E4%BB%98%E4%BA%8C%E7%BB%B4%E7%A0%81/" rel="next" title="支付二维码">
+      支付二维码 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E8%AE%A4%E8%AF%86-FIDO"><span class="nav-number">1.</span> <span class="nav-text">认识 FIDO</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-%E8%83%8C%E6%99%AF"><span class="nav-number">1.1.</span> <span class="nav-text">1. 背景</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-%E8%A7%A3%E5%86%B3%E6%80%9D%E8%B7%AF"><span class="nav-number">1.2.</span> <span class="nav-text">2. 解决思路</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-FIDO-%E8%81%94%E7%9B%9F"><span class="nav-number">1.3.</span> <span class="nav-text">3. FIDO 联盟</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-UAF%E3%80%81U2F%E3%80%81CTAP%E3%80%81FIDO2-%E5%92%8C-Passkey-%E7%9A%84%E5%85%B3%E7%B3%BB"><span class="nav-number">1.4.</span> <span class="nav-text">4. UAF、U2F、CTAP、FIDO2 和 Passkey 的关系</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#FIDO-%E7%94%A8%E6%88%B7%E8%BA%AB%E4%BB%BD%E9%AA%8C%E8%AF%81%E8%A7%84%E8%8C%83"><span class="nav-number">2.</span> <span class="nav-text">FIDO 用户身份验证规范</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#FIDO-UAF"><span class="nav-number">2.1.</span> <span class="nav-text">FIDO UAF</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#UAF-%E6%B3%A8%E5%86%8C%E8%BF%87%E7%A8%8B"><span class="nav-number">2.1.1.</span> <span class="nav-text">UAF 注册过程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#UAF-%E6%97%A0%E5%AF%86%E7%A0%81%E8%AE%A4%E8%AF%81%E8%BF%87%E7%A8%8B"><span class="nav-number">2.1.2.</span> <span class="nav-text">UAF 无密码认证过程</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#FIDO-U2F"><span class="nav-number">2.2.</span> <span class="nav-text">FIDO U2F</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#U2F-%E6%B3%A8%E5%86%8C%E8%BF%87%E7%A8%8B"><span class="nav-number">2.2.1.</span> <span class="nav-text">U2F 注册过程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#U2F-%E8%AE%A4%E8%AF%81%E8%BF%87%E7%A8%8B"><span class="nav-number">2.2.2.</span> <span class="nav-text">U2F 认证过程</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#FIDO2%EF%BC%88WebAuthn-CTAP%EF%BC%89"><span class="nav-number">2.3.</span> <span class="nav-text">FIDO2（WebAuthn + CTAP）</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#WebAuthn"><span class="nav-number">2.3.1.</span> <span class="nav-text">WebAuthn</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#CTAP2"><span class="nav-number">2.3.2.</span> <span class="nav-text">CTAP2</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#CTAP1"><span class="nav-number">2.3.3.</span> <span class="nav-text">CTAP1</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#FIDO2-%E6%B3%A8%E5%86%8C%E4%B8%8E%E8%AE%A4%E8%AF%81%E6%B5%81%E7%A8%8B"><span class="nav-number">2.4.</span> <span class="nav-text">FIDO2 注册与认证流程</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%B3%A8%E5%86%8C%EF%BC%88Registration%EF%BC%89"><span class="nav-number">2.4.1.</span> <span class="nav-text">注册（Registration）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%AE%A4%E8%AF%81%EF%BC%88Authentication%EF%BC%89"><span class="nav-number">2.4.2.</span> <span class="nav-text">认证（Authentication）</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%B3%E9%94%AE%E5%AE%89%E5%85%A8%E6%A6%82%E5%BF%B5"><span class="nav-number">2.5.</span> <span class="nav-text">关键安全概念</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B8%B8%E8%A7%81%E8%AF%AF%E5%8C%BA"><span class="nav-number">2.6.</span> <span class="nav-text">常见误区</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%8F%82%E8%80%83"><span class="nav-number">3.</span> <span class="nav-text">参考</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="ttestoo"
+      src="/images/avator.jpg">
+  <p class="site-author-name" itemprop="name">ttestoo</p>
+  <div class="site-description" itemprop="description">不争</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">13</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+        <span class="site-state-item-count">24</span>
+        <span class="site-state-item-name">分类</span>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">31</span>
+        <span class="site-state-item-name">标签</span>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/ttestoo" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;ttestoo" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:test@qq.com" title="E-Mail → mailto:test@qq.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+  <div class="links-of-blogroll motion-element">
+    <div class="links-of-blogroll-title">
+      <i class="fa fa-fw fa-link"></i>
+      Links
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="https://ttestoo.github.io/" title="https:&#x2F;&#x2F;ttestoo.github.io&#x2F;">Title</a>
+        </li>
+    </ul>
+  </div>
+
+      </div>
+        <div class="back-to-top motion-element">
+          <i class="fa fa-arrow-up"></i>
+          <span>0%</span>
+        </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2021 – 
+  <span itemprop="copyrightYear">2026</span>
+  <span class="with-love">
+    <i class="fa fa-fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ttestoo</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+      <span class="post-meta-item-text">站点总字数：</span>
+    <span title="站点总字数">118k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+      <span class="post-meta-item-text">站点阅读时长 &asymp;</span>
+    <span title="站点阅读时长">1:47</span>
+</div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
